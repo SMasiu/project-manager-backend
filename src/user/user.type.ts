@@ -1,0 +1,6 @@
+export interface UserType {
+    id: string;
+    name: string;
+    surname: string;
+    nick: string | undefined;
+}
