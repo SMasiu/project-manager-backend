@@ -10,7 +10,8 @@ export class AuthService {
         const token = jwt.sign({id}, process.env.JWT_KEY);
         res.setHeader('Set-Cookie', cookie.serialize('token', token, {
             maxAge: 60 * 60 * 24 * 7,
-            path: '/'
+            path: '/',
+            httpOnly: true
         }));
         return token;
     }
