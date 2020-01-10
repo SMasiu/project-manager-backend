@@ -5,9 +5,11 @@ class Migration {
 
     private usersTable = this.createTable('users', `
         user_id SERIAL PRIMARY KEY,
+        email VARCHAR(320) NOT NULL UNIQUE,
+        nick VARCHAR(30) NOT NULL UNIQUE,
+        password VARCHAR NOT NULL,
         name VARCHAR(20) NOT NULL,
-        surname VARCHAR(30) NOT NULL,
-        nick VARCHAR(30)
+        surname VARCHAR(30) NOT NULL
     `);
 
     private createTable(name: string, fields: string) {

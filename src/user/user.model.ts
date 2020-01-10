@@ -11,6 +11,13 @@ export class User {
     @Field()
     surname: string;
 
-    @Field({ nullable: true })
+    @Field()
     nick: string;
+}
+
+@ObjectType()
+export class Me extends User {
+    
+    @Field()
+    email: string;
 }
