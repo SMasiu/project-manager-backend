@@ -9,7 +9,12 @@ import { formatError } from './graphql/error';
 	imports: [
 		GraphQLModule.forRoot({
 			debug: true,
-			playground: true,
+			playground: {
+				endpoint: '/graphql',
+				settings: {
+					"request.credentials": "same-origin",
+				}
+			},
 			autoSchemaFile: 'schema.gql',
 			formatError,
 			context: ({req, res}) => ({req, res})

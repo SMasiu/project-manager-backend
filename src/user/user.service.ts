@@ -12,7 +12,7 @@ export class UserService {
 
     constructor(private readonly databaseService: DatabaseServide, private readonly authService: AuthService) { }
 
-    createUser(user: NewUserType): Observable<NewFullUserType> {
+    createUser(user: NewUserType, { res }): Observable<NewFullUserType> {
         return Observable.create(observer => {
             const newUser = new NewUser(user, this.databaseService);
 
@@ -20,6 +20,7 @@ export class UserService {
                 if(valid) {
                     newUser.save().pipe(take(1)).subscribe(
                     user => {
+                        this.authService.setToken(user.id, res);
                         observer.next(user);
                         observer.complete();
                     },

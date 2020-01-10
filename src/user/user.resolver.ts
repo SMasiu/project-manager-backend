@@ -8,9 +8,11 @@ import { take } from "rxjs/operators";
 export class UserResolver {
     constructor(private readonly userService: UserService) { }
 
-    @Query(type => User)
-    async User() {
-        
+    @Query(type => String)
+    async User(@Context() ctx) {
+        const cookie = ctx.req.headers;
+        console.log(cookie)
+        return 'ok';
     }
 
     @Query(type => [User])
@@ -21,7 +23,7 @@ export class UserResolver {
     @Mutation(type => Me) 
     async CreateUser(@Args() user: NewUserArgs, @Context() ctx) {
         try {
-            return await this.userService.createUser(user).pipe(take(1)).toPromise();
+            return await this.userService.createUser(user, ctx).pipe(take(1)).toPromise();
         } catch (err) {
             throw err;
         }
