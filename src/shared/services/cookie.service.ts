@@ -10,7 +10,7 @@ export class CookieService {
         res.setHeader('Set-Cookie', cookie.serialize(name, value, {
             maxAge: this.age,
             path: '/',
-            httpOnly: true
+            httpOnly: true,
         }));
     }
 

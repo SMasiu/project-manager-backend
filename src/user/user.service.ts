@@ -35,7 +35,7 @@ export class UserService {
         });
     }
     
-    loginUser({userName, password}: {userName: string, password: string}, { res }): Observable<MeType> {
+    loginUser({userName, password}: {userName: string, password: string}, { res, req }): Observable<MeType> {
         return Observable.create( observer => {
             let userLogin = userName.indexOf('@') === -1 ? 'nick' : 'email';
 

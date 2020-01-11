@@ -5,17 +5,16 @@ import * as cookie from 'cookie';
 import * as bcrypt from 'bcrypt';
 import { Observable } from "rxjs";
 import { ServerErrorFilter, UnauthorizedErrorFilter } from "../filters/error.filter";
+import { CookieService } from "./cookie.service";
 
 @Injectable()
 export class AuthService {
 
+    constructor(private readonly cookieService: CookieService) { }
+
     setToken(id: string, res: Response) {
         const token = jwt.sign({id}, process.env.JWT_KEY);
-        res.setHeader('Set-Cookie', cookie.serialize('token', token, {
-            maxAge: 60 * 60 * 24 * 7,
-            path: '/',
-            httpOnly: true
-        }));
+        this.cookieService.setCookie(res, 'token', token);
         return token;
     }
 

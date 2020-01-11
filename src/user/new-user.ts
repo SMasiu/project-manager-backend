@@ -22,7 +22,7 @@ class NewUser {
             name: Joi.string().required().max(20).min(2),
             surname: Joi.string().required().max(30).min(2),
             nick: Joi.string().max(30).min(4).required().alphanum(),
-            password: Joi.string().max(64).min(8),
+            password: Joi.string().max(64).min(8).required(),
             confirmPassword: Joi.ref('password')
         })
     }

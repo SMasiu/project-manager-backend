@@ -1,4 +1,3 @@
-import * as cors from 'cors';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import db from './database/client';
@@ -20,11 +19,11 @@ async function bootstrap() {
 				async () => {
 					const app = await NestFactory.create(AppModule);
 					
-					app.use(cors({
-						origin: 'http://localhost:3000',
-						credentials: true,
-						exposedHeaders: ['Set-Cookie']
-					}));
+					app.enableCors({
+						origin: 'http://localhost:4200',
+						credentials: true
+					});
+				
 					app.use(cookieParser());
 					await app.listen(3000);
 					console.log('Complete migration...')

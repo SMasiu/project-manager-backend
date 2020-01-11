@@ -17,7 +17,11 @@ import { formatError } from './graphql/error';
 			},
 			autoSchemaFile: 'schema.gql',
 			formatError,
-			context: ({req, res}) => ({req, res})
+			context: ({req, res}) => ({req, res}),
+			cors: {
+                credentials: true,
+                origin: true,
+            },
 		}),
 		UserModule
 	],
