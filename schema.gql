@@ -12,11 +12,13 @@ type Me {
 }
 
 type Mutation {
+  LogoutUser: String!
+  LoginUser(userName: String!, password: String!): Me!
   CreateUser(email: String!, name: String!, surname: String!, password: String!, confirmPassword: String!, nick: String!): Me!
 }
 
 type Query {
-  User: String!
+  User: User!
   Users: [User!]!
 }
 

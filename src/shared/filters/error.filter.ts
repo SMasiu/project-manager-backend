@@ -12,3 +12,15 @@ export class ServerErrorFilter extends HttpException {
         super(defineError({type: 'ServerError'}), HttpStatus.INTERNAL_SERVER_ERROR)
     }
 }
+
+export class UnauthorizedErrorFilter extends HttpException {
+    constructor(message: string = 'Unauthorized user') {
+        super(defineError({message, type: 'Unauthorized'}), HttpStatus.UNAUTHORIZED);
+    }
+}
+
+export class NotFoundErrorFilter extends HttpException {
+    constructor(message: string = 'Resource not found') {
+        super(defineError({message, type: 'NotFound'}), HttpStatus.NOT_FOUND);
+    }
+}

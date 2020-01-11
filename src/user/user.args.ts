@@ -20,3 +20,12 @@ export class NewUserArgs {
     @Field(type => String)
     nick: string;
 }
+
+@ArgsType()
+export class LoginUserArgs {
+    @Field(type => String)
+    userName: string;
+
+    @Field(type => String)
+    password: string;
+}

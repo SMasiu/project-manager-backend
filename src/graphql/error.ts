@@ -22,5 +22,13 @@ const errorResponses = {
     ServerError: {
         message: 'Internal server error',
         type: 'ServerError'
+    },
+    Unauthorized: {
+        message: 'Unauthorized user',
+        type: 'Unauthorized'
+    },
+    NotFound: {
+        message: 'Resource not found',
+        type: 'NotFound'
     }
 }
