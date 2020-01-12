@@ -41,12 +41,17 @@ class NewUser {
             }
 
             this.databaseService.query(`
-                SELECT nick, email FROM users WHERE nick = $1 OR email = $2 LIMIT 1;
+                SELECT nick, email FROM users WHERE nick = $1 OR email = $2 LIMIT 2;
             `, [this.user.nick, this.user.email]).pipe(take(1)).subscribe( rows => {
                 
                 if(rows.length) {
+                    const { email, nick } = this.user;
                     this.valid = false;
-                    this.validationError = 'Email or nick is alredy taken';
+                    if(rows.length === 2 || (rows[0].email === email && rows[0].nick === nick)) {
+                        this.validationError = 'Email and nick are alredy taken';
+                    } else {
+                        this.validationError = rows[0].email === email ? 'Email is alredy taken' : 'Nick is alredy taken';
+                    }
                 }
 
                 observer.next(this.valid);
