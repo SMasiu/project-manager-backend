@@ -22,4 +22,8 @@ export class CookieService {
         }));
     }
 
+    getCookies(req) {
+        return cookie.parse(req.headers.cookie || '{}');
+    }
+
 }

@@ -1,12 +1,12 @@
 import { Client } from "pg";
 import db from "src/database/client";
 import { Injectable } from "@nestjs/common";
-import { from, of, Observable, observable } from "rxjs";
+import { from, of, Observable } from "rxjs";
 import { take, map, catchError } from "rxjs/operators";
 import { ServerErrorFilter } from "../filters/error.filter";
 
 @Injectable()
-export class DatabaseServide {
+export class DatabaseService {
     
     client: Client;
 

@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { GraphQLModule } from '@nestjs/graphql';
 import { UserModule } from './user/user.module';
 import { formatError } from './graphql/error';
+import { TeamModule } from './teams/team.module';
 
 @Module({
 	imports: [
@@ -23,7 +24,8 @@ import { formatError } from './graphql/error';
                 origin: true,
             },
 		}),
-		UserModule
+		UserModule,
+		TeamModule
 	],
 	controllers: [AppController],
 	providers: [AppService],

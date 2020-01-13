@@ -4,7 +4,7 @@
 # -----------------------------------------------
 
 type Me {
-  id: ID!
+  user_id: ID!
   name: String!
   surname: String!
   nick: String!
@@ -15,15 +15,31 @@ type Mutation {
   LogoutUser: String!
   LoginUser(userName: String!, password: String!): Me!
   CreateUser(email: String!, name: String!, surname: String!, password: String!, confirmPassword: String!, nick: String!): Me!
+  CreateTeam(name: String!): Team!
+  AddTeamMember(teamId: ID!, userId: ID!): TeamMember!
 }
 
 type Query {
-  User: User!
-  Users: [User!]!
+  User(id: ID!): User!
+  Users(limit: String, offset: String): [User!]!
+  TeamMembers(id: ID!): [TeamMember!]!
+  Teams: [Team!]!
+}
+
+type Team {
+  team_id: ID!
+  name: String!
+  owner: ID!
+}
+
+type TeamMember {
+  user_id: ID!
+  team_id: ID!
+  permission: Float!
 }
 
 type User {
-  id: ID!
+  user_id: ID!
   name: String!
   surname: String!
   nick: String!

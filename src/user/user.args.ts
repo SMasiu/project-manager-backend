@@ -1,4 +1,4 @@
-import { ArgsType, Field } from "type-graphql";
+import { ArgsType, Field, ID } from "type-graphql";
 
 @ArgsType()
 export class NewUserArgs {
@@ -28,4 +28,10 @@ export class LoginUserArgs {
 
     @Field(type => String)
     password: string;
+}
+
+@ArgsType()
+export class UserArgs {
+    @Field(type => ID)
+    id: string;
 }

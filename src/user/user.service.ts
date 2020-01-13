@@ -1,17 +1,18 @@
 import { Injectable } from "@nestjs/common";
-import { DatabaseServide } from "src/shared/services/database.service";
-import { NewUserType, MeType } from "./user.type";
+import { DatabaseService } from "src/shared/services/database.service";
+import { NewUserType, MeType, UserType } from "./user.type";
 import NewUser from "./new-user";
 import { BadRequestFilter, NotFoundErrorFilter } from "src/shared/filters/error.filter";
 import { take } from "rxjs/operators";
 import { Observable } from "rxjs";
 import { AuthService } from "src/shared/services/auth.service";
 import { CookieService } from "src/shared/services/cookie.service";
+import { mapGetOptions } from "src/shared/functions/map-get-options";
 
 @Injectable()
 export class UserService {
 
-    constructor(private readonly databaseService: DatabaseServide,
+    constructor(private readonly databaseService: DatabaseService,
                 private readonly authService: AuthService,
                 private readonly cookieService: CookieService) { }
 
@@ -44,17 +45,11 @@ export class UserService {
             `, [userName]).pipe(take(1)).subscribe(
                 rows => {
                     if(rows.length) {
-                        const {user_id, hash, name, surname, email, nick} = rows[0];
+                        const { user_id, hash } = rows[0];
                         this.authService.verifyPassword(password, hash).pipe(take(1)).subscribe(
                             () => {
                                 this.authService.setToken(user_id, res);
-                                observer.next({
-                                    id: user_id,
-                                    name,
-                                    surname,
-                                    email,
-                                    nick
-                                });
+                                observer.next(rows[0]);
                                 return observer.complete();
                             },
                             err => observer.error(err)
@@ -76,12 +71,49 @@ export class UserService {
         });
     }
 
-    getUser() {
-
+    getUser(id: string, { req }): Observable<UserType> {
+        return Observable.create( observer => {
+            this.authService.varifyToken(req).pipe(take(1)).subscribe(
+                () => {
+                    this.databaseService.query(`
+                        SELECT user_id, name, surname, nick FROM users WHERE user_id = $1 LIMIT 1;
+                    `, [id]).pipe(take(1)).subscribe(
+                        rows => {
+                            if(rows.length) {
+                                observer.next(rows[0]);
+                                return observer.complete();
+                            } else {
+                                return observer.error(new NotFoundErrorFilter('User not found'));
+                            }
+                        },
+                        err => observer.error(err)
+                    );
+                },
+                err => observer.error(err)
+            );
+        });
     }
 
-    getUsers() {
+    getUsers(options, { req }): Observable<UserType[]> {
 
+        const {limit, offset} = mapGetOptions(options);
+
+        return Observable.create( observer => {
+            this.authService.varifyToken(req).pipe(take(1)).subscribe(
+                () => {
+                    this.databaseService.query(`
+                        SELECT user_id, name, surname, nick FROM users LIMIT $1 OFFSET $2;
+                    `, [limit, offset]).pipe(take(1)).subscribe(
+                        rows => {
+                            observer.next(rows);
+                            return observer.complete();
+                        },
+                        err => observer.error(err)
+                    );
+                },
+                err => observer.error(err)
+            );
+        });
     }
 
 }

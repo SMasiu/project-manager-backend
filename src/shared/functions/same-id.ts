@@ -1,0 +1,1 @@
+export const sameId = (id1: any, id2: any) => parseInt(id1) === parseInt(id2); 

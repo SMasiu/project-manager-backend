@@ -1,6 +1,6 @@
 import { NewUserType, NewFullUserType } from "./user.type";
 import * as Joi from '@hapi/joi';
-import { DatabaseServide } from "src/shared/services/database.service";
+import { DatabaseService } from "src/shared/services/database.service";
 import { Observable } from "rxjs";
 import { ServerErrorFilter } from "src/shared/filters/error.filter";
 import * as bcrypt from 'bcrypt';
@@ -14,7 +14,7 @@ class NewUser {
     valid: boolean = false;
     validationError: string;
 
-    constructor (private user: NewUserType, private databaseService: DatabaseServide) { }
+    constructor (private user: NewUserType, private databaseService: DatabaseService) { }
 
     private createValidationSchema() {
         this.validationShema = Joi.object({
@@ -86,7 +86,7 @@ class NewUser {
                         }
                     ]).subscribe( ([_, rows2]) => {
                         this.id = rows2[0].currval;
-                        observer.next({...this.user, id: this.id});
+                        observer.next({...this.user, user_id: this.id});
                         observer.complete();
                 }, err => observer.error(err));
             })

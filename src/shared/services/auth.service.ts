@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import * as jwt from 'jsonwebtoken';
 import { Response } from "express";
-import * as cookie from 'cookie';
 import * as bcrypt from 'bcrypt';
 import { Observable } from "rxjs";
 import { ServerErrorFilter, UnauthorizedErrorFilter } from "../filters/error.filter";
@@ -16,6 +15,30 @@ export class AuthService {
         const token = jwt.sign({id}, process.env.JWT_KEY);
         this.cookieService.setCookie(res, 'token', token);
         return token;
+    }
+
+    varifyToken(req: Request): Observable<{id: number}> {
+
+        return Observable.create( observer => {
+
+            const cookies = this.cookieService.getCookies(req);
+
+            if(cookies && cookies.token) {
+                jwt.verify(cookies.token, process.env.JWT_KEY, (err, decoded) => {
+                    if(err) {
+                        return observer.error(new ServerErrorFilter());        
+                    } else {
+                        (<{id: any}>decoded).id = parseInt((<any>decoded).id);
+                        observer.next(decoded);
+                        return observer.complete();
+                    }
+                });
+
+            } else {
+                return observer.error(new ServerErrorFilter());
+            }
+        });
+
     }
 
     verifyPassword(password: string, hash: string): Observable<boolean> {
