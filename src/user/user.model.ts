@@ -21,3 +21,12 @@ export class Me extends User {
     @Field()
     email: string;
 }
+
+@ObjectType()
+export class MeStatus {
+    @Field()
+    logged: boolean;
+
+    @Field(type => Me, {nullable: true})
+    me: Me;
+}

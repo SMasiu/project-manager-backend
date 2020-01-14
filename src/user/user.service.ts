@@ -116,4 +116,46 @@ export class UserService {
         });
     }
 
+    checkUserStatus({ req }): Observable<any> {
+        return Observable.create( observer => {
+            this.authService.varifyToken(req, {skipErrors: true}).pipe(take(1)).subscribe( ({id, valid}) =>  {
+                if(valid === false) {
+                    observer.next({
+                        logged: false,
+                        me: null
+                    });
+                    return observer.complete();
+                }
+
+                this.getMeById(id).pipe(take(1)).subscribe(
+                    me => {
+                        observer.next({
+                            logged: true,
+                            me
+                        });
+                        return observer.complete();
+                    },
+                    err => observer.error(err)
+                ); 
+            });
+        });
+    }
+
+    getMeById(id): Observable<MeType> {
+        return Observable.create( observer => {
+            this.databaseService.query(`
+                SELECT user_id, name, surname, nick, email FROM users WHERE user_id = $1 LIMIT 1;
+            `, [id]).pipe(take(1)).subscribe(
+                rows => {
+                    if(rows.length) {
+                        observer.next(rows[0]);
+                        return observer.complete();
+                    }
+                    return observer.error(new NotFoundErrorFilter('User not found'));
+                },
+                err => observer.error(err)
+            );
+        });
+    }
+
 }

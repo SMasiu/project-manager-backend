@@ -11,6 +11,11 @@ type Me {
   email: String!
 }
 
+type MeStatus {
+  logged: Boolean!
+  me: Me
+}
+
 type Mutation {
   LogoutUser: String!
   LoginUser(userName: String!, password: String!): Me!
@@ -22,6 +27,7 @@ type Mutation {
 type Query {
   User(id: ID!): User!
   Users(limit: String, offset: String): [User!]!
+  CheckUserStatus: MeStatus!
   TeamMembers(id: ID!): [TeamMember!]!
   Teams: [Team!]!
 }

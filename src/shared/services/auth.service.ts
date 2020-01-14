@@ -17,8 +17,8 @@ export class AuthService {
         return token;
     }
 
-    varifyToken(req: Request): Observable<{id: number}> {
-
+    varifyToken(req: Request, { skipErrors }: { skipErrors?: boolean } = {}): Observable<{id: number, valid?: boolean}> {
+        
         return Observable.create( observer => {
 
             const cookies = this.cookieService.getCookies(req);
@@ -26,7 +26,12 @@ export class AuthService {
             if(cookies && cookies.token) {
                 jwt.verify(cookies.token, process.env.JWT_KEY, (err, decoded) => {
                     if(err) {
-                        return observer.error(new ServerErrorFilter());        
+                        if(skipErrors) {
+                            observer.next({valid: false, id: -1});
+                            return observer.complete();
+                        } else {
+                            return observer.error(new UnauthorizedErrorFilter());        
+                        }
                     } else {
                         (<{id: any}>decoded).id = parseInt((<any>decoded).id);
                         observer.next(decoded);
@@ -35,7 +40,12 @@ export class AuthService {
                 });
 
             } else {
-                return observer.error(new ServerErrorFilter());
+                if(skipErrors) {
+                    observer.next({valid:false, id: -1});
+                    return observer.complete();
+                } else {
+                    return observer.error(new UnauthorizedErrorFilter());
+                }
             }
         });
 
