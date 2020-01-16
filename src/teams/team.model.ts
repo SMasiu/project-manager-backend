@@ -1,15 +1,25 @@
-import { Field, ID, ObjectType } from "type-graphql";
+import { Field, ID, ObjectType, Int } from "type-graphql";
+import { User } from "src/user/user.model";;
 
 @ObjectType()
 export class Team {
     @Field(type => ID)
-    team_id: number;
+    team_id: string;
 
     @Field()
     name: string
 
     @Field(type => ID)
     owner: string;
+}
+
+@ObjectType()
+export class TeamExtended {
+    @Field(type => User)
+    owner: User;
+
+    @Field(type => Int)
+    membersCount: number;
 }
 
 @ObjectType()
@@ -20,6 +30,6 @@ export class TeamMember {
     @Field(type => ID)
     team_id: string;
 
-    @Field()
+    @Field(type => Int)
     permission: number;
 }

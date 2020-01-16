@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { AddMemberType, MemberType, TeamType, NewTeamType } from "./team.type";
 import { AuthService } from "src/shared/services/auth.service";
 import { Observable } from "rxjs";
-import { take } from "rxjs/operators";
+import { take, map } from "rxjs/operators";
 import { DatabaseService } from "src/shared/services/database.service";
 import * as Joi from '@hapi/joi';
 import { BadRequestFilter, NotFoundErrorFilter, UnauthorizedErrorFilter } from "src/shared/filters/error.filter";
@@ -145,15 +145,32 @@ export class TeamService {
                 ({id}) => {
 
                     this.databaseService.query(`
-                        SELECT t.team_id, t.name, t.owner
+                        SELECT t.team_id, t.name, u.user_id as owner_id, u.name as owner_name, u.nick as owner_nick, u.surname as owner_surname,
+                        (SELECT (COUNT(team_id) + 1) as count FROM team_members WHERE team_id = t.team_id) as members_count
                         FROM team_members tm
-                        JOIN teams t ON t.team_id = tm.team_id
+                        JOIN teams t USING(team_id)
+                        JOIN users u ON t.owner = u.user_id
                         WHERE tm.user_id = $1
                         UNION
-                        SELECT team_id, name, owner
-                        FROM teams
+                        SELECT t.team_id, t.name, u.user_id as owner_id, u.name as owner_name, u.nick as owner_nick, u.surname as owner_surname,
+                            (SELECT (COUNT(team_id) + 1) as count FROM team_members WHERE team_id = t.team_id) as members_count
+                        FROM teams t
+                        JOIN users u ON t.owner = u.user_id
                         WHERE owner = $1
-                    `, [id]).pipe(take(1)).subscribe(
+                    `, [id]).pipe(
+                        take(1),
+                        map( rows => rows.map(r => ({
+                            team_id: r.team_id,
+                            name: r.name,
+                            owner: {
+                                user_id: r.owner_id,
+                                name: r.owner_name,
+                                surname: r.owner_surname,
+                                nick: r.owner_nick
+                            },
+                            membersCount: r.members_count
+                        })))
+                        ).subscribe(
                         rows => {
                             observer.next(rows);
                             return observer.complete();

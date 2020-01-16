@@ -29,7 +29,7 @@ type Query {
   Users(limit: String, offset: String): [User!]!
   CheckUserStatus: MeStatus!
   TeamMembers(id: ID!): [TeamMember!]!
-  Teams: [Team!]!
+  Teams: [TeamExtended!]!
 }
 
 type Team {
@@ -38,10 +38,15 @@ type Team {
   owner: ID!
 }
 
+type TeamExtended {
+  owner: User!
+  membersCount: Int!
+}
+
 type TeamMember {
   user_id: ID!
   team_id: ID!
-  permission: Float!
+  permission: Int!
 }
 
 type User {
