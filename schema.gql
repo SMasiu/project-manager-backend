@@ -38,7 +38,14 @@ type Team {
   owner: ID!
 }
 
+type TeamBase {
+  team_id: ID!
+  name: String!
+}
+
 type TeamExtended {
+  team_id: ID!
+  name: String!
   owner: User!
   membersCount: Int!
 }

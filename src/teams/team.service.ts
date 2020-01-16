@@ -172,6 +172,7 @@ export class TeamService {
                         })))
                         ).subscribe(
                         rows => {
+                            console.log(rows)
                             observer.next(rows);
                             return observer.complete();
                         },
