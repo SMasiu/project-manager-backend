@@ -124,7 +124,7 @@ export class TeamService {
 
     private addMemberToDb({teamId, userId}: AddMemberType): Observable<MemberType> {
         return Observable.create( observer => {
-
+            //add field to accept request in db
             this.databaseService.query(`
                 INSERT INTO team_members (user_id, team_id, permission) VALUES ($1, $2, 0)
             `, [userId, teamId]).pipe(take(1)).subscribe(
@@ -172,7 +172,6 @@ export class TeamService {
                         })))
                         ).subscribe(
                         rows => {
-                            console.log(rows)
                             observer.next(rows);
                             return observer.complete();
                         },
