@@ -26,25 +26,31 @@ export class TeamService {
                     if(error) {
                         return observer.error(new BadRequestFilter(error.message));
                     } else {
-
-                        this.databaseService.queryMany([{
-                            sql: `INSERT INTO teams (name, owner) VALUES ($1, $2);`,
-                            args: [team.name, id]
-                        },{
-                            sql: `SELECT currval('teams_team_id_seq');`
-                        }]).pipe(take(1)).subscribe(
-                            ([_, rows2]) => {
-                                observer.next({name: team.name, owner: id, team_id: rows2[0].currval});
+                        this.databaseService.query(`
+                            WITH t_ins AS (
+                                INSERT INTO teams (name, owner)
+                                VALUES ($1, $2)
+                                RETURNING owner, name, team_id
+                            )
+                            SELECT t.name, t.team_id, u.user_id as owner_id, u.name as owner_name, u.surname as owner_surname, u.nick as owner_nick
+                            FROM t_ins t
+                            JOIN users u ON t.owner = u.user_id
+                            LIMIT 1;
+                        `, [team.name, id])
+                        .pipe(
+                            take(1),
+                            map( r => this.mapTeams(r)[0] )
+                            ).subscribe(
+                            team => {
+                                observer.next(team);
                                 return observer.complete();
                             },
                             err => observer.error(err)
                         );
-
                     }
                 },
                 err => observer.error(err)
             );
-            
         });
     }
 
@@ -124,12 +130,23 @@ export class TeamService {
 
     private addMemberToDb({teamId, userId}: AddMemberType): Observable<MemberType> {
         return Observable.create( observer => {
-            //add field to accept request in db
             this.databaseService.query(`
-                INSERT INTO team_members (user_id, team_id, permission) VALUES ($1, $2, 0)
-            `, [userId, teamId]).pipe(take(1)).subscribe(
-                _ => {
-                    observer.next({team_id: teamId, user_id: userId, permission: 0});
+                WITH u_id as (
+                    INSERT INTO team_members
+                    (user_id, team_id, permission, accepted)
+                    VALUES ($1, $2, 0, false)
+                    RETURNING user_id
+                )
+                SELECT user_id, nick, name, surname, 0 as permission, false as accepted
+                FROM users
+                WHERE user_id = (SELECT user_id from u_id LIMIT 1)
+                LIMIT 1;
+            `, [userId, teamId]).pipe(
+                    take(1),
+                    map( r =>this.mapMembers(r)[0] )
+                ).subscribe(
+                ins => {
+                    observer.next(ins);
                     return observer.complete();
                 },
                 err => observer.error(err)
@@ -159,17 +176,7 @@ export class TeamService {
                         WHERE owner = $1
                     `, [id]).pipe(
                         take(1),
-                        map( rows => rows.map(r => ({
-                            team_id: r.team_id,
-                            name: r.name,
-                            owner: {
-                                user_id: r.owner_id,
-                                name: r.owner_name,
-                                surname: r.owner_surname,
-                                nick: r.owner_nick
-                            },
-                            membersCount: r.members_count
-                        })))
+                        map( this.mapTeams )
                         ).subscribe(
                         rows => {
                             observer.next(rows);
@@ -190,11 +197,20 @@ export class TeamService {
             this.authService.varifyToken(req).pipe(take(1)).subscribe(
                 () => {
                     this.databaseService.query(`
-                        SELECT tm.team_id, tm.permission, tm.user_id
+                        SELECT tm.permission, tm.accepted, u.user_id, u.name, u.surname, u.nick
                         FROM team_members tm
-                        JOIN teams t USING(team_id)
-                        WHERE t.team_id = $1
-                    `, [id]).pipe(take(1)).subscribe(
+                        JOIN users u USING(user_id)
+                        WHERE tm.team_id = $1
+                        UNION
+                        (SELECT 2 as permission, true as accepted, u.user_id, u.name, u.surname, u.nick
+                        FROM teams t
+                        JOIN users u ON t.owner = u.user_id
+                        WHERE team_id = $1
+                        LIMIT 1)
+                    `, [id]).pipe(
+                            take(1),
+                            map( this.mapMembers )
+                        ).subscribe(
                         rows => {
                             observer.next(rows);
                             return observer.complete();
@@ -208,4 +224,30 @@ export class TeamService {
         });
     }
 
+    mapTeams(rows: any[]) {
+        return rows.map( r => ({
+            team_id: r.team_id,
+            name: r.name,
+            owner: {
+                user_id: r.owner_id,
+                name: r.owner_name,
+                surname: r.owner_surname,
+                nick: r.owner_nick
+            },
+            membersCount: r.members_count
+        }));
+    }
+
+    mapMembers(rows: any[]) {
+        return rows.map( ({accepted, permission, name, surname, nick, user_id}) => ({
+            accepted,
+            permission,
+            user: {
+                name,
+                surname,
+                nick,
+                user_id
+            }
+        }));
+    }
 }

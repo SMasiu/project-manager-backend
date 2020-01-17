@@ -4,7 +4,7 @@ import { DatabaseService } from "src/shared/services/database.service";
 import { Observable } from "rxjs";
 import { ServerErrorFilter } from "src/shared/filters/error.filter";
 import * as bcrypt from 'bcrypt';
-import { take } from "rxjs/operators";
+import { take, map } from "rxjs/operators";
 
 class NewUser {
 
@@ -71,22 +71,17 @@ class NewUser {
             bcrypt.hash(this.user.password, parseInt(process.env.BCRYPT_SALT))
                 .then( hash => {
                     const { email, name, surname, nick } = this.user;
-                    this.databaseService.queryMany([
-                        {
-                            sql: `
-                                INSERT INTO users
-                                (email, password, name, surname, nick)
-                                VALUES ($1, $2, $3, $4, $5);
-                            `,
-                            args: [email, hash, name, surname, nick]
-                        },{
-                            sql: `
-                                SELECT currval('users_user_id_seq');
-                            `
-                        }
-                    ]).subscribe( ([_, rows2]) => {
-                        this.id = rows2[0].currval;
-                        observer.next({...this.user, user_id: this.id});
+                    this.databaseService.query(`
+                        INSERT INTO users
+                        (email, password, name, surname, nick)
+                        VALUES ($1, $2, $3, $4, $5)
+                        RETURNING user_id, email, name, surname, nick;
+                    `,[email, hash, name, surname, nick]
+                    ).pipe(
+                        take(1),
+                        map( rows => rows[0] )
+                    ).subscribe( (user) => {
+                        observer.next(user);
                         observer.complete();
                 }, err => observer.error(err));
             })

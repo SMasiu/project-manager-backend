@@ -19,7 +19,10 @@ export class DatabaseService {
             from(this.client.query(sql, args)).pipe(
                 take(1),
                 map( r => r.rows ),
-                catchError( err => of('error') )
+                catchError( err => {
+                    console.log(err)
+                    return of('error')
+                })
             ).subscribe(rows => {
                 if(rows === 'error') {
                     observer.error(new ServerErrorFilter())

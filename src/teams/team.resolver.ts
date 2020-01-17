@@ -1,5 +1,5 @@
 import { Resolver, Mutation, Context, Args, Query } from "@nestjs/graphql";
-import { Team, TeamMember, TeamExtended } from "./team.model";
+import { Team, TeamMember } from "./team.model";
 import { TeamService } from "./team.service";
 import { NewTeamArgs, AddMemberArgs, GetTeamArgs } from "./team.args";
 import { take } from "rxjs/operators";
@@ -36,7 +36,7 @@ export class TeamResolver {
         }
     }
 
-    @Query(type => [TeamExtended])
+    @Query(type => [Team])
     async Teams(@Context() ctx) {
         try {
             return await this.teamService.getTeams(ctx).pipe(take(1)).toPromise();

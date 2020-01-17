@@ -1,7 +1,9 @@
+import { MeType } from "src/user/user.type";
+
 export interface TeamType {
     team_id: number;
     name: string;
-    owner: string;
+    owner: MeType;
 }
 
 export interface NewTeamType extends Omit<TeamType, 'team_id' | 'owner'> { }

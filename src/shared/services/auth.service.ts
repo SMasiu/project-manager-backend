@@ -33,6 +33,9 @@ export class AuthService {
                             return observer.error(new UnauthorizedErrorFilter());        
                         }
                     } else {
+                        if(!(<any>decoded).id) {
+                            return observer.error(new UnauthorizedErrorFilter());
+                        }
                         (<{id: any}>decoded).id = parseInt((<any>decoded).id);
                         observer.next(decoded);
                         return observer.complete();
