@@ -73,24 +73,21 @@ export class UserService {
 
     getUser(id: string, { req }): Observable<UserType> {
         return Observable.create( observer => {
-            this.authService.varifyToken(req).pipe(take(1)).subscribe(
-                () => {
-                    this.databaseService.query(`
-                        SELECT user_id, name, surname, nick FROM users WHERE user_id = $1 LIMIT 1;
-                    `, [id]).pipe(take(1)).subscribe(
-                        rows => {
-                            if(rows.length) {
-                                observer.next(rows[0]);
-                                return observer.complete();
-                            } else {
-                                return observer.error(new NotFoundErrorFilter('User not found'));
-                            }
-                        },
-                        err => observer.error(err)
-                    );
+    
+            this.databaseService.query(`
+                SELECT user_id, name, surname, nick FROM users WHERE user_id = $1 LIMIT 1;
+            `, [id]).pipe(take(1)).subscribe(
+                rows => {
+                    if(rows.length) {
+                        observer.next(rows[0]);
+                        return observer.complete();
+                    } else {
+                        return observer.error(new NotFoundErrorFilter('User not found'));
+                    }
                 },
                 err => observer.error(err)
             );
+                
         });
     }
 
@@ -99,17 +96,12 @@ export class UserService {
         const {limit, offset} = mapGetOptions(options);
 
         return Observable.create( observer => {
-            this.authService.varifyToken(req).pipe(take(1)).subscribe(
-                () => {
-                    this.databaseService.query(`
-                        SELECT user_id, name, surname, nick FROM users LIMIT $1 OFFSET $2;
-                    `, [limit, offset]).pipe(take(1)).subscribe(
-                        rows => {
-                            observer.next(rows);
-                            return observer.complete();
-                        },
-                        err => observer.error(err)
-                    );
+            this.databaseService.query(`
+                SELECT user_id, name, surname, nick FROM users LIMIT $1 OFFSET $2;
+            `, [limit, offset]).pipe(take(1)).subscribe(
+                rows => {
+                    observer.next(rows);
+                    return observer.complete();
                 },
                 err => observer.error(err)
             );

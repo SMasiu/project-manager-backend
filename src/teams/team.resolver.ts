@@ -3,6 +3,8 @@ import { Team, TeamMember } from "./team.model";
 import { TeamService } from "./team.service";
 import { NewTeamArgs, AddMemberArgs, GetTeamArgs } from "./team.args";
 import { take } from "rxjs/operators";
+import { UseGuards } from "@nestjs/common";
+import { AuthGuard } from "src/shared/guards/auth.guard";
 
 @Resolver()
 export class TeamResolver {
@@ -10,6 +12,7 @@ export class TeamResolver {
     constructor(private readonly teamService: TeamService) { }
 
     @Mutation(type => Team)
+    @UseGuards(AuthGuard)
     async CreateTeam(@Args() team: NewTeamArgs, @Context() ctx) {
         try {
             return await this.teamService.createTeam(team, ctx).pipe(take(1)).toPromise();
@@ -19,6 +22,7 @@ export class TeamResolver {
     }
 
     @Mutation(type => TeamMember)
+    @UseGuards(AuthGuard)
     async AddTeamMember(@Args() args: AddMemberArgs, @Context() ctx) {
         try {
             return await this.teamService.addMember(args, ctx).pipe(take(1)).toPromise();
@@ -28,6 +32,7 @@ export class TeamResolver {
     }
 
     @Query(type => [TeamMember])
+    @UseGuards(AuthGuard)
     async TeamMembers(@Args() args: GetTeamArgs, @Context() ctx) {
         try {
             return await this.teamService.getTeam(args.id, ctx).pipe(take(1)).toPromise();
@@ -37,6 +42,7 @@ export class TeamResolver {
     }
 
     @Query(type => [Team])
+    @UseGuards(AuthGuard)
     async Teams(@Context() ctx) {
         try {
             return await this.teamService.getTeams(ctx).pipe(take(1)).toPromise();
