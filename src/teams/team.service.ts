@@ -187,7 +187,7 @@ export class TeamService {
                 JOIN users u USING(user_id)
                 WHERE tm.team_id = $1
                 UNION
-                (SELECT 2 as permission, true as accepted, u.user_id, u.name, u.surname, u.nick
+                (SELECT 3 as permission, true as accepted, u.user_id, u.name, u.surname, u.nick
                 FROM teams t
                 JOIN users u ON t.owner = u.user_id
                 WHERE team_id = $1
