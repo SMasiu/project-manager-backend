@@ -1,11 +1,11 @@
 import { Resolver, Query, Mutation, Args, Context } from "@nestjs/graphql";
 import { Me, User, MeStatus } from "./user.model";
 import { UserService } from "./user.service";
-import { NewUserArgs, LoginUserArgs, UserArgs } from "./user.args";
+import { NewUserArgs, LoginUserArgs, UserArgs, GetUserArgs, CountUserArgs } from "./user.args";
 import { take } from "rxjs/operators";
-import { GetOptionsArgs } from "src/graphql/get-options.args";
 import { UseGuards } from "@nestjs/common";
 import { AuthGuard } from "src/shared/guards/auth.guard";
+import { Int } from "type-graphql";
 
 @Resolver()
 export class UserResolver {
@@ -13,9 +13,9 @@ export class UserResolver {
 
     @Query(type => User)
     @UseGuards(AuthGuard)
-    async User(@Args() userArgs: UserArgs, @Context() ctx) {
+    async User(@Args() userArgs: UserArgs) {
         try {
-            return await this.userService.getUser(userArgs.id, ctx).pipe(take(1)).toPromise();
+            return await this.userService.getUser(userArgs.id).pipe(take(1)).toPromise();
         } catch (err) {
             throw err;
         }
@@ -23,9 +23,19 @@ export class UserResolver {
 
     @Query(type => [User])
     @UseGuards(AuthGuard)
-    async Users(@Args() args: GetOptionsArgs, @Context() ctx) {
+    async Users(@Args() args: GetUserArgs) {
         try {
-            return await this.userService.getUsers(args, ctx).pipe(take(1)).toPromise();
+            return await this.userService.getUsers(args).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    @Query(type => Int)
+    @UseGuards(AuthGuard)
+    async UsersCount(@Args() args: CountUserArgs) {
+        try {
+            return await this.userService.getUsersCount(args).pipe(take(1)).toPromise();
         } catch (err) {
             throw err;
         }

@@ -3,8 +3,8 @@ import { DatabaseService } from "src/shared/services/database.service";
 import { NewUserType, MeType, UserType } from "./user.type";
 import NewUser from "./new-user";
 import { BadRequestFilter, NotFoundErrorFilter } from "src/shared/filters/error.filter";
-import { take } from "rxjs/operators";
-import { Observable } from "rxjs";
+import { take, map } from "rxjs/operators";
+import { Observable, observable } from "rxjs";
 import { AuthService } from "src/shared/services/auth.service";
 import { CookieService } from "src/shared/services/cookie.service";
 import { mapGetOptions } from "src/shared/functions/map-get-options";
@@ -71,7 +71,7 @@ export class UserService {
         });
     }
 
-    getUser(id: string, { req }): Observable<UserType> {
+    getUser(id: string): Observable<UserType> {
         return Observable.create( observer => {
     
             this.databaseService.query(`
@@ -91,14 +91,33 @@ export class UserService {
         });
     }
 
-    getUsers(options, { req }): Observable<UserType[]> {
+    getFullNameTemplate(fullname: string) {
+        let arr = fullname.split(' ')
+        if(arr.length === 1) {
+            return `%${fullname}%`; 
+        } else {
+            return `%(${arr[0]}|${arr[1]})%`
+        }
+    }
 
-        const {limit, offset} = mapGetOptions(options);
+    getUsers(options): Observable<UserType[]> {
+
+        const { limit, offset } = mapGetOptions(options);
+        const { fullname } = options;
 
         return Observable.create( observer => {
             this.databaseService.query(`
-                SELECT user_id, name, surname, nick FROM users LIMIT $1 OFFSET $2;
-            `, [limit, offset]).pipe(take(1)).subscribe(
+                WITH full_table AS(
+                    SELECT CONCAT(name, ' ',surname, ' ', nick) as fullname, user_id 
+                    FROM users
+                )
+                SELECT u.name, u.surname, u.nick, u.user_id
+                FROM full_table ft
+                    JOIN users u USING(user_id)
+                WHERE ft.fullname SIMILAR TO $3
+                LIMIT $1
+                OFFSET $2
+            `, [limit, offset, this.getFullNameTemplate(fullname)]).pipe(take(1)).subscribe(
                 rows => {
                     observer.next(rows);
                     return observer.complete();
@@ -144,6 +163,40 @@ export class UserService {
                         return observer.complete();
                     }
                     return observer.error(new NotFoundErrorFilter('User not found'));
+                },
+                err => observer.error(err)
+            );
+        });
+    }
+
+    getUsersCount({fullname}): Observable<number> {
+        return Observable.create( observer => {
+
+            let obs: Observable<any>;
+
+            if(fullname) {
+                obs = this.databaseService.query(`
+                    WITH full_table AS(
+                        SELECT CONCAT(name, ' ',surname, ' ', nick) as fullname
+                        FROM users
+                    )
+                    SELECT COUNT(fullname)
+                    FROM full_table
+                    WHERE fullname SIMILAR TO $1
+                `, [this.getFullNameTemplate(fullname)]);
+            } else {
+                obs = this.databaseService.query(`
+                    SELECT COUNT(user_id) FROM users;
+                `);
+            }
+
+            obs.pipe(
+                take(1),
+                map( rows => rows[0].count )
+            ).subscribe(
+                count => {
+                    observer.next(count);
+                    return observer.complete();
                 },
                 err => observer.error(err)
             );

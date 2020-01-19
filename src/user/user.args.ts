@@ -1,4 +1,5 @@
 import { ArgsType, Field, ID } from "type-graphql";
+import { GetOptionsArgs } from "src/graphql/get-options.args";
 
 @ArgsType()
 export class NewUserArgs {
@@ -34,4 +35,16 @@ export class LoginUserArgs {
 export class UserArgs {
     @Field(type => ID)
     id: string;
+}
+
+@ArgsType()
+export class CountUserArgs {
+    @Field(type => String, { nullable: true, defaultValue: '' })
+    fullname: string;
+}
+
+@ArgsType()
+export class GetUserArgs extends GetOptionsArgs {
+    @Field(type => String, { nullable: true, defaultValue: '' })
+    fullname: string;
 }
