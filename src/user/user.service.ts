@@ -42,7 +42,7 @@ export class UserService {
 
             this.databaseService.query(`
                 SELECT user_id, password as hash, name, surname, email, nick FROM users WHERE ${userLogin} = $1 LIMIT 1;
-            `, [userName]).pipe(take(1)).subscribe(
+            `, [userName.toLowerCase()]).pipe(take(1)).subscribe(
                 rows => {
                     if(rows.length) {
                         const { user_id, hash } = rows[0];

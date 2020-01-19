@@ -14,7 +14,10 @@ class NewUser {
     valid: boolean = false;
     validationError: string;
 
-    constructor (private user: NewUserType, private databaseService: DatabaseService) { }
+    constructor (private user: NewUserType, private databaseService: DatabaseService) {
+        this.user.nick = this.user.nick.toLowerCase();
+        this.user.email = this.user.email.toLowerCase();
+    }
 
     private createValidationSchema() {
         this.validationShema = Joi.object({
@@ -70,7 +73,8 @@ class NewUser {
 
             bcrypt.hash(this.user.password, parseInt(process.env.BCRYPT_SALT))
                 .then( hash => {
-                    const { email, name, surname, nick } = this.user;
+                    let { email, name, surname, nick } = this.user;
+
                     this.databaseService.query(`
                         INSERT INTO users
                         (email, password, name, surname, nick)
