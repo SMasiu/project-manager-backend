@@ -129,26 +129,29 @@ export class UserService {
 
     checkUserStatus({ req }): Observable<any> {
         return Observable.create( observer => {
-            this.authService.varifyToken(req, {skipErrors: true}).pipe(take(1)).subscribe( ({id, valid}) =>  {
-                if(valid === false) {
-                    observer.next({
-                        logged: false,
-                        me: null
-                    });
-                    return observer.complete();
-                }
-
-                this.getMeById(id).pipe(take(1)).subscribe(
-                    me => {
+            this.authService.varifyToken(req, {skipErrors: true}).pipe(take(1)).subscribe( 
+                ({id, valid}) =>  {
+                    if(valid === false) {
                         observer.next({
-                            logged: true,
-                            me
+                            logged: false,
+                            me: null
                         });
                         return observer.complete();
-                    },
-                    err => observer.error(err)
-                ); 
-            });
+                    }
+
+                    this.getMeById(id).pipe(take(1)).subscribe(
+                        me => {
+                            observer.next({
+                                logged: true,
+                                me
+                            });
+                            return observer.complete();
+                        },
+                        err => observer.error(err)
+                    ); 
+                },
+                err => observer.error(err)
+            );
         });
     }
 

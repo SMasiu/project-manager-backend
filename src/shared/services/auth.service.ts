@@ -25,6 +25,7 @@ export class AuthService {
 
             if(cookies && cookies.token) {
                 jwt.verify(cookies.token, process.env.JWT_KEY, (err, decoded) => {
+                    
                     if(err) {
                         if(skipErrors) {
                             observer.next({valid: false, id: -1});
@@ -34,7 +35,12 @@ export class AuthService {
                         }
                     } else {
                         if(!(<any>decoded).id) {
-                            return observer.error(new UnauthorizedErrorFilter());
+                            if(skipErrors) {
+                                observer.next({valid:false, id: -1});
+                                return observer.complete();
+                            } else {
+                                return observer.error(new UnauthorizedErrorFilter());
+                            }
                         }
                         (<{id: any}>decoded).id = parseInt((<any>decoded).id);
                         observer.next(decoded);
