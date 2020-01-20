@@ -1,10 +1,10 @@
-import { ArgsType, Field } from "type-graphql";
+import { ArgsType, Field, Int } from "type-graphql";
 
 @ArgsType()
 export class GetOptionsArgs {
-    @Field(type => String, {nullable: true})
+    @Field(type => Int, {nullable: true})
     limit: number;
 
-    @Field(type => String, {nullable: true})
+    @Field(type => Int, {nullable: true})
     offset: number;
 }

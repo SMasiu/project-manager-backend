@@ -1,5 +1,5 @@
 import { Resolver, Query, Mutation, Args, Context } from "@nestjs/graphql";
-import { Me, User, MeStatus } from "./user.model";
+import { Me, User, MeStatus, UsersAndCount } from "./user.model";
 import { UserService } from "./user.service";
 import { NewUserArgs, LoginUserArgs, UserArgs, GetUserArgs, CountUserArgs } from "./user.args";
 import { take } from "rxjs/operators";
@@ -36,6 +36,24 @@ export class UserResolver {
     async UsersCount(@Args() args: CountUserArgs) {
         try {
             return await this.userService.getUsersCount(args).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    @Query(type => UsersAndCount)
+    @UseGuards(AuthGuard)
+    async GetUsersAndCount(@Args() args: GetUserArgs) {
+        try {
+            
+            const users = await this.userService.getUsers(args).pipe(take(1)).toPromise();
+            const count = await this.userService.getUsersCount(args).pipe(take(1)).toPromise();
+    
+            return {
+                users,
+                count
+            }
+
         } catch (err) {
             throw err;
         }

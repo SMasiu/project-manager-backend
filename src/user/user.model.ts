@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID } from 'type-graphql';
+import { ObjectType, Field, ID, Int } from 'type-graphql';
 
 @ObjectType()
 export class User {
@@ -29,4 +29,13 @@ export class MeStatus {
 
     @Field(type => Me, {nullable: true})
     me: Me;
+}
+
+@ObjectType()
+export class UsersAndCount {
+    @Field(type => [User])
+    users: User[];
+
+    @Field(type => Int)
+    count: number;
 }

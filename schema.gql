@@ -26,8 +26,9 @@ type Mutation {
 
 type Query {
   User(id: ID!): User!
-  Users(limit: String, offset: String, fullname: String = ""): [User!]!
+  Users(limit: Int, offset: Int, fullname: String = ""): [User!]!
   UsersCount(fullname: String = ""): Int!
+  GetUsersAndCount(limit: Int, offset: Int, fullname: String = ""): UsersAndCount!
   CheckUserStatus: MeStatus!
   TeamMembers(id: ID!): [TeamMember!]!
   Teams: [Team!]!
@@ -51,4 +52,9 @@ type User {
   name: String!
   surname: String!
   nick: String!
+}
+
+type UsersAndCount {
+  users: [User!]!
+  count: Int!
 }
