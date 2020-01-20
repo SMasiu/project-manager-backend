@@ -24,6 +24,10 @@ type Mutation {
   AddTeamMember(teamId: ID!, userId: ID!): TeamMember!
 }
 
+type Notifications {
+  teamInvitations: [Team!]!
+}
+
 type Query {
   User(id: ID!): User!
   Users(limit: Int, offset: Int, fullname: String = ""): [User!]!
@@ -32,6 +36,7 @@ type Query {
   CheckUserStatus: MeStatus!
   TeamMembers(id: ID!): [TeamMember!]!
   Teams: [Team!]!
+  GetNotifications: Notifications!
 }
 
 type Team {

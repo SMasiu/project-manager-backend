@@ -24,7 +24,8 @@ export class UserService {
                 if(valid) {
                     newUser.save().pipe(take(1)).subscribe(
                     user => {
-                        this.authService.setToken(user.id, res);
+                        console.log(user)
+                        this.authService.setToken(user.user_id, res);
                         observer.next(user);
                         observer.complete();
                     },

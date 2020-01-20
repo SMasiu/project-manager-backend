@@ -5,6 +5,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { UserModule } from './user/user.module';
 import { formatError } from './graphql/error';
 import { TeamModule } from './teams/team.module';
+import { NotificationModule } from './notifications/notification.module';
 
 @Module({
 	imports: [
@@ -25,7 +26,8 @@ import { TeamModule } from './teams/team.module';
             },
 		}),
 		UserModule,
-		TeamModule
+		TeamModule,
+		NotificationModule
 	],
 	controllers: [AppController],
 	providers: [AppService],

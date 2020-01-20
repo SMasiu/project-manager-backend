@@ -16,5 +16,5 @@ export interface NewUserType extends Omit<MeType, 'id'> {
 }
 
 export interface NewFullUserType extends NewUserType {
-    id: string;
+    user_id: string;
 }

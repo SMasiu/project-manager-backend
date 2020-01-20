@@ -7,6 +7,7 @@ import { DatabaseService } from "src/shared/services/database.service";
 import * as Joi from '@hapi/joi';
 import { BadRequestFilter, NotFoundErrorFilter, UnauthorizedErrorFilter } from "src/shared/filters/error.filter";
 import { sameId } from "src/shared/functions/same-id";
+import { mapTeams } from "./team-maps";
 
 @Injectable()
 export class TeamService {
@@ -39,10 +40,10 @@ export class TeamService {
                 `, [team.name, user_id])
                 .pipe(
                     take(1),
-                    map( r => this.mapTeams(r)[0] )
+                    map( r => mapTeams(r)[0] )
                     ).subscribe(
                     team => {
-                        observer.next(team);
+                        observer.next({...team, membersCount: 1});
                         return observer.complete();
                     },
                     err => observer.error(err)
@@ -158,7 +159,7 @@ export class TeamService {
                 FROM team_members tm
                 JOIN teams t USING(team_id)
                 JOIN users u ON t.owner = u.user_id
-                WHERE tm.user_id = $1
+                WHERE tm.user_id = $1 AND tm.permission <> 0
                 UNION
                 SELECT t.team_id, t.name, u.user_id as owner_id, u.name as owner_name, u.nick as owner_nick, u.surname as owner_surname,
                     (SELECT (COUNT(team_id) + 1) as count FROM team_members WHERE team_id = t.team_id) as members_count
@@ -167,7 +168,7 @@ export class TeamService {
                 WHERE owner = $1
             `, [user_id]).pipe(
                 take(1),
-                map( this.mapTeams )
+                map( mapTeams )
                 ).subscribe(
                 rows => {
                     observer.next(rows);
@@ -197,27 +198,20 @@ export class TeamService {
                     take(1),
                     map( this.mapMembers )
                 ).subscribe(
-                rows => {
-                    observer.next(rows);
+                members => {
+
+                    const user_id = req.authUser.user_id;
+                    let me = members.find( m => m.user.user_id === user_id );
+                    if(!me || me.permission === 0) {
+                        return observer.error(new UnauthorizedErrorFilter('Unauthorized user'));
+                    }
+
+                    observer.next(members);
                     return observer.complete();
                 },
                 err => observer.error(err)
             );
         });
-    }
-
-    mapTeams(rows: any[]) {
-        return rows.map( r => ({
-            team_id: r.team_id,
-            name: r.name,
-            owner: {
-                user_id: r.owner_id,
-                name: r.owner_name,
-                surname: r.owner_surname,
-                nick: r.owner_nick
-            },
-            membersCount: r.members_count
-        }));
     }
 
     mapMembers(rows: any[]) {
