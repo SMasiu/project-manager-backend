@@ -126,11 +126,11 @@ export class TeamService {
             this.databaseService.query(`
                 WITH u_id as (
                     INSERT INTO team_members
-                    (user_id, team_id, permission, accepted)
-                    VALUES ($1, $2, 0, false)
+                    (user_id, team_id, permission)
+                    VALUES ($1, $2, 0)
                     RETURNING user_id
                 )
-                SELECT user_id, nick, name, surname, 0 as permission, false as accepted
+                SELECT user_id, nick, name, surname, 0 as permission
                 FROM users
                 WHERE user_id = (SELECT user_id from u_id LIMIT 1)
                 LIMIT 1;
@@ -180,15 +180,15 @@ export class TeamService {
         });
     }
 
-    getTeam(id: string, { req }): Observable<any> {
+    getTeam(id: string, { req }): Observable<MemberType[]> {
         return Observable.create( observer => {
             this.databaseService.query(`
-                SELECT tm.permission, tm.accepted, u.user_id, u.name, u.surname, u.nick
+                SELECT tm.permission, u.user_id, u.name, u.surname, u.nick
                 FROM team_members tm
                 JOIN users u USING(user_id)
                 WHERE tm.team_id = $1
                 UNION
-                (SELECT 3 as permission, true as accepted, u.user_id, u.name, u.surname, u.nick
+                (SELECT 3 as permission, u.user_id, u.name, u.surname, u.nick
                 FROM teams t
                 JOIN users u ON t.owner = u.user_id
                 WHERE team_id = $1
@@ -215,8 +215,7 @@ export class TeamService {
     }
 
     mapMembers(rows: any[]) {
-        return rows.map( ({accepted, permission, name, surname, nick, user_id}) => ({
-            accepted,
+        return rows.map( ({permission, name, surname, nick, user_id}) => ({
             permission,
             user: {
                 name,
@@ -225,5 +224,123 @@ export class TeamService {
                 user_id
             }
         }));
+    }
+
+    acceptTeamInvitation(team_id: string, { req }): Observable<MemberType> {
+        return Observable.create( observer => {
+
+            const { user_id } = req.authUser;
+
+            this.databaseService.query(`
+                WITH updated AS (
+                    UPDATE team_members
+                    SET permission = 1
+                    WHERE team_id = $1 AND user_id = $2 AND permission = 0
+                    RETURNING user_id, permission
+                )
+                SELECT up.permission, u.name, u.nick, u.surname, u.user_id
+                FROM updated up
+                JOIN users u USING(user_id)
+                LIMIT 1;
+            `, [team_id, user_id]).pipe(
+                take(1),
+                map( this.mapMembers )
+            ).subscribe(
+                members => {
+
+                    if(members.length) {
+                        observer.next(members[0]);
+                        return observer.complete();
+                    }
+
+                    return observer.error(new NotFoundErrorFilter('Team invitation not found'));
+                },
+                err => observer.error(err)
+            );
+
+        });
+    }
+
+    leaveTeam(team_id: string, { req }): Observable<MemberType> {
+        return Observable.create( observer => {
+            const { user_id } = req.authUser;
+
+            this.databaseService.query(`
+                WITH deleted AS (
+                    DELETE
+                    FROM team_members
+                    WHERE team_id = $1 AND user_id = $2
+                    RETURNING permission, user_id
+                )
+                SELECT d.permission, u.name, u.surname, u.nick, u.user_id
+                FROM deleted d
+                JOIN users u USING(user_id)
+                LIMIT 1;
+            `, [team_id, user_id]).pipe(
+                take(1),
+                map( this.mapMembers )
+            ).subscribe(
+                members => {
+                    if(members.length) {
+                        observer.next(members[0]);
+                        return observer.complete();
+                    }
+
+                    return observer.error(new NotFoundErrorFilter('Team not found'));
+                },
+                err => observer.error(err)
+            );
+        });
+    }
+
+    deleteTeam(team_id: string, { req }): Observable<TeamType> {
+        return Observable.create( observer => {
+
+            const { user_id } = req.authUser;
+
+            this.databaseService.query(`
+                SELECT owner
+                FROM teams
+                WHERE team_id = $1
+                LIMIT 1;
+            `, [team_id]).pipe(
+                take(1) 
+            ).subscribe( 
+                teams => {
+                    if(!teams.length) {
+                        return observer.error(new NotFoundErrorFilter('Team not found'));
+                    }
+
+                    if(user_id !== teams[0].owner) {
+                        return observer.error(new UnauthorizedErrorFilter('Unauthorized user'));
+                    }
+
+                    this.databaseService.query(`
+                        WITH deleted as (
+                            DELETE
+                            FROM teams
+                            WHERE team_id = $1
+                            RETURNING team_id, owner, name
+                        )
+                        SELECT d.team_id, d.name, u.user_id as owner_id, u.name as owner_name, u.nick as owner_nick, u.surname as owner_surname, 0 as members_count
+                        FROM deleted d
+                        JOIN users u ON u.user_id = owner
+                        LIMIT 1;
+                    `, [team_id]).pipe(
+                        take(1),
+                        map( r => mapTeams(r)[0] )
+                    ).subscribe( 
+                        team => {
+                            observer.next(team);
+                            return observer.complete();
+                        },
+                        err => observer.error(err)
+                    );
+
+                },
+                err => observer.error(err)
+            );
+
+        });
     }
 }

@@ -22,6 +22,9 @@ type Mutation {
   CreateUser(email: String!, name: String!, surname: String!, password: String!, confirmPassword: String!, nick: String!): Me!
   CreateTeam(name: String!): Team!
   AddTeamMember(teamId: ID!, userId: ID!): TeamMember!
+  AcceptTeamInvitation(team_id: ID!): TeamMember!
+  LeaveTeam(team_id: ID!): TeamMember!
+  DeleteTeam(team_id: ID!): Team!
 }
 
 type Notifications {
@@ -49,7 +52,6 @@ type Team {
 type TeamMember {
   user: User!
   permission: Int!
-  accepted: Boolean!
 }
 
 type User {

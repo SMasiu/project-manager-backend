@@ -20,3 +20,9 @@ export class GetTeamArgs {
     @Field(type => ID)
     id: string;
 }
+
+@ArgsType()
+export class TeamIdArgs {
+    @Field(type => ID)
+    team_id: string;
+}

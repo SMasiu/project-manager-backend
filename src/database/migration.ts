@@ -21,8 +21,7 @@ class Migration {
     private teamMembersTable = this.createTable('team_members', `
         team_id INTEGER references teams(team_id) NOT NULL,
         user_id INTEGER references users(user_id) NOT NULL,
-        permission INTEGER NOT NULL,
-        accepted BOOLEAN NOT NULL
+        permission INTEGER NOT NULL
     `)
 
     private createTable(name: string, fields: string) {

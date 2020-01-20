@@ -4,7 +4,7 @@ import { NewUserType, MeType, UserType } from "./user.type";
 import NewUser from "./new-user";
 import { BadRequestFilter, NotFoundErrorFilter } from "src/shared/filters/error.filter";
 import { take, map } from "rxjs/operators";
-import { Observable, observable } from "rxjs";
+import { Observable } from "rxjs";
 import { AuthService } from "src/shared/services/auth.service";
 import { CookieService } from "src/shared/services/cookie.service";
 import { mapGetOptions } from "src/shared/functions/map-get-options";
@@ -24,7 +24,6 @@ export class UserService {
                 if(valid) {
                     newUser.save().pipe(take(1)).subscribe(
                     user => {
-                        console.log(user)
                         this.authService.setToken(user.user_id, res);
                         observer.next(user);
                         observer.complete();

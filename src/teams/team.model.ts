@@ -23,7 +23,4 @@ export class TeamMember {
 
     @Field(type => Int)
     permission: number;
-
-    @Field(type => Boolean)
-    accepted: boolean;
 }

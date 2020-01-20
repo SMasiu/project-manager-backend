@@ -1,7 +1,7 @@
 import { Resolver, Mutation, Context, Args, Query } from "@nestjs/graphql";
 import { Team, TeamMember } from "./team.model";
 import { TeamService } from "./team.service";
-import { NewTeamArgs, AddMemberArgs, GetTeamArgs } from "./team.args";
+import { NewTeamArgs, AddMemberArgs, GetTeamArgs, TeamIdArgs } from "./team.args";
 import { take } from "rxjs/operators";
 import { UseGuards } from "@nestjs/common";
 import { AuthGuard } from "src/shared/guards/auth.guard";
@@ -31,6 +31,26 @@ export class TeamResolver {
         }
     }
 
+    @Mutation(type => TeamMember)
+    @UseGuards(AuthGuard)
+    async AcceptTeamInvitation(@Args() args: TeamIdArgs, @Context() ctx) {
+        try {
+            return await this.teamService.acceptTeamInvitation(args.team_id, ctx).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    @Mutation(type => TeamMember)
+    @UseGuards(AuthGuard)
+    async LeaveTeam(@Args() args: TeamIdArgs, @Context() ctx) {
+        try {
+            return await this.teamService.leaveTeam(args.team_id, ctx).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
+    }
+
     @Query(type => [TeamMember])
     @UseGuards(AuthGuard)
     async TeamMembers(@Args() args: GetTeamArgs, @Context() ctx) {
@@ -50,6 +70,15 @@ export class TeamResolver {
             throw err;
         }
     }
-
+    
+    @Mutation(type => Team)
+    @UseGuards(AuthGuard)
+    async DeleteTeam(@Args() args: TeamIdArgs, @Context() ctx) {
+        try {
+            return await this.teamService.deleteTeam(args.team_id, ctx).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
+    }
 
 }
