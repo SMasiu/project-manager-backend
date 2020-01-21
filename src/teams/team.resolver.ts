@@ -1,10 +1,12 @@
 import { Resolver, Mutation, Context, Args, Query } from "@nestjs/graphql";
 import { Team, TeamMember } from "./team.model";
 import { TeamService } from "./team.service";
-import { NewTeamArgs, AddMemberArgs, GetTeamArgs, TeamIdArgs } from "./team.args";
+import { NewTeamArgs, AddMemberArgs, GetTeamArgs, TeamIdArgs, KickArgs } from "./team.args";
 import { take } from "rxjs/operators";
 import { UseGuards } from "@nestjs/common";
 import { AuthGuard } from "src/shared/guards/auth.guard";
+import { Subject } from "rxjs";
+import { MemberType } from "./team.type";
 
 @Resolver()
 export class TeamResolver {
@@ -79,6 +81,18 @@ export class TeamResolver {
         } catch (err) {
             throw err;
         }
+    }
+
+    @Mutation(type => TeamMember)
+    @UseGuards(AuthGuard)
+    async KickOutOfTheTeam(@Args() args: KickArgs, @Context() ctx) {
+
+        try {
+            return await this.teamService.kickOutOfTheTeam(args, ctx).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
+
     }
 
 }

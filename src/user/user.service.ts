@@ -37,29 +37,27 @@ export class UserService {
     }
     
     loginUser({userName, password}: {userName: string, password: string}, { res, req }): Observable<MeType> {
-        return Observable.create( observer => {
+        return Observable.create( async observer => {
             let userLogin = userName.indexOf('@') === -1 ? 'nick' : 'email';
 
-            this.databaseService.query(`
+            const rows = await this.databaseService.query(observer, `
                 SELECT user_id, password as hash, name, surname, email, nick FROM users WHERE ${userLogin} = $1 LIMIT 1;
-            `, [userName.toLowerCase()]).pipe(take(1)).subscribe(
-                rows => {
-                    if(rows.length) {
-                        const { user_id, hash } = rows[0];
-                        this.authService.verifyPassword(password, hash).pipe(take(1)).subscribe(
-                            () => {
-                                this.authService.setToken(user_id, res);
-                                observer.next(rows[0]);
-                                return observer.complete();
-                            },
-                            err => observer.error(err)
-                        );
-                    } else {
-                        return observer.error(new NotFoundErrorFilter('User not found'));
-                    }
-                },
-                err => observer.error(err)
-            );
+            `, [userName.toLowerCase()]).pipe(take(1)).toPromise();
+            
+            if(rows.length) {
+                const { user_id, hash } = rows[0];
+                this.authService.verifyPassword(password, hash).pipe(take(1)).subscribe(
+                    () => {
+                        this.authService.setToken(user_id, res);
+                        observer.next(rows[0]);
+                        return observer.complete();
+                    },
+                    err => observer.error(err)
+                );
+            } else {
+                return observer.error(new NotFoundErrorFilter('User not found'));
+            }
+                
         });
     }
 
@@ -72,21 +70,18 @@ export class UserService {
     }
 
     getUser(id: string): Observable<UserType> {
-        return Observable.create( observer => {
+        return Observable.create( async observer => {
     
-            this.databaseService.query(`
+            const rows = await this.databaseService.query(observer, `
                 SELECT user_id, name, surname, nick FROM users WHERE user_id = $1 LIMIT 1;
-            `, [id]).pipe(take(1)).subscribe(
-                rows => {
-                    if(rows.length) {
-                        observer.next(rows[0]);
-                        return observer.complete();
-                    } else {
-                        return observer.error(new NotFoundErrorFilter('User not found'));
-                    }
-                },
-                err => observer.error(err)
-            );
+            `, [id]).pipe(take(1)).toPromise();
+                
+            if(rows.length) {
+                observer.next(rows[0]);
+                return observer.complete();
+            } else {
+                return observer.error(new NotFoundErrorFilter('User not found'));
+            }
                 
         });
     }
@@ -105,8 +100,8 @@ export class UserService {
         const { limit, offset } = mapGetOptions(options);
         const { fullname } = options;
 
-        return Observable.create( observer => {
-            this.databaseService.query(`
+        return Observable.create( async observer => {
+            const rows = await this.databaseService.query(observer, `
                 WITH full_table AS(
                     SELECT CONCAT(name, ' ',surname, ' ', nick) as fullname, user_id 
                     FROM users
@@ -117,13 +112,11 @@ export class UserService {
                 WHERE ft.fullname SIMILAR TO $3
                 LIMIT $1
                 OFFSET $2
-            `, [limit, offset, this.getFullNameTemplate(fullname)]).pipe(take(1)).subscribe(
-                rows => {
-                    observer.next(rows);
-                    return observer.complete();
-                },
-                err => observer.error(err)
-            );
+            `, [limit, offset, this.getFullNameTemplate(fullname)]).pipe(take(1)).toPromise();
+
+            observer.next(rows);
+            return observer.complete();
+              
         });
     }
 
@@ -156,29 +149,27 @@ export class UserService {
     }
 
     getMeById(id): Observable<MeType> {
-        return Observable.create( observer => {
-            this.databaseService.query(`
+        return Observable.create( async observer => {
+            const rows = await this.databaseService.query(observer, `
                 SELECT user_id, name, surname, nick, email FROM users WHERE user_id = $1 LIMIT 1;
-            `, [id]).pipe(take(1)).subscribe(
-                rows => {
-                    if(rows.length) {
-                        observer.next(rows[0]);
-                        return observer.complete();
-                    }
-                    return observer.error(new NotFoundErrorFilter('User not found'));
-                },
-                err => observer.error(err)
-            );
+            `, [id]).pipe(take(1)).toPromise();
+
+            if(rows.length) {
+                observer.next(rows[0]);
+                return observer.complete();
+            }
+            return observer.error(new NotFoundErrorFilter('User not found'));
+              
         });
     }
 
     getUsersCount({fullname}): Observable<number> {
-        return Observable.create( observer => {
+        return Observable.create( async observer => {
 
             let obs: Observable<any>;
 
             if(fullname) {
-                obs = this.databaseService.query(`
+                obs = this.databaseService.query(observer, `
                     WITH full_table AS(
                         SELECT CONCAT(name, ' ',surname, ' ', nick) as fullname
                         FROM users
@@ -188,21 +179,18 @@ export class UserService {
                     WHERE fullname SIMILAR TO $1
                 `, [this.getFullNameTemplate(fullname)]);
             } else {
-                obs = this.databaseService.query(`
+                obs = this.databaseService.query(observer, `
                     SELECT COUNT(user_id) FROM users;
                 `);
             }
 
-            obs.pipe(
+            const count = await obs.pipe(
                 take(1),
                 map( rows => rows[0].count )
-            ).subscribe(
-                count => {
-                    observer.next(count);
-                    return observer.complete();
-                },
-                err => observer.error(err)
-            );
+            ).toPromise();
+                
+            observer.next(count);
+            return observer.complete();
         });
     }
 

@@ -1,7 +1,7 @@
 import { Client } from "pg";
 import db from "src/database/client";
 import { Injectable } from "@nestjs/common";
-import { from, of, Observable } from "rxjs";
+import { from, of, Observable, Observer } from "rxjs";
 import { take, map, catchError } from "rxjs/operators";
 import { ServerErrorFilter } from "../filters/error.filter";
 
@@ -14,19 +14,18 @@ export class DatabaseService {
         this.client = db.client;
     }
 
-    query(sql: string, args: any[] | null = null): Observable<any[]> {
+    query(obs: Observer<any>, sql: string, args: any[] | null = null): Observable<any[]> {
         return Observable.create(observer => {
             from(this.client.query(sql, args)).pipe(
                 take(1),
                 map( r => r.rows ),
                 catchError( err => {
                     console.log(err)
+                    obs.error(new ServerErrorFilter())
                     return of('error')
                 })
             ).subscribe(rows => {
-                if(rows === 'error') {
-                    observer.error(new ServerErrorFilter())
-                } else {
+                if(rows !== 'error') {
                     observer.next(rows);
                     observer.complete();
                 }

@@ -26,3 +26,9 @@ export class TeamIdArgs {
     @Field(type => ID)
     team_id: string;
 }
+
+@ArgsType()
+export class KickArgs extends TeamIdArgs {
+    @Field(type => ID)
+    user_id: string;
+}

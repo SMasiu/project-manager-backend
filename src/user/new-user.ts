@@ -31,7 +31,7 @@ class NewUser {
     }
 
     validate(): Observable<boolean> {
-        return Observable.create(observer => {
+        return Observable.create(async observer => {
             this.createValidationSchema();
             const { error } = this.validationShema.validate(this.user);
             if(error) {
@@ -43,24 +43,23 @@ class NewUser {
                 this.valid = true;
             }
 
-            this.databaseService.query(`
+            const rows = await this.databaseService.query(observer, `
                 SELECT nick, email FROM users WHERE nick = $1 OR email = $2 LIMIT 2;
-            `, [this.user.nick, this.user.email]).pipe(take(1)).subscribe( rows => {
+            `, [this.user.nick, this.user.email]).pipe(take(1)).toPromise();
                 
-                if(rows.length) {
-                    const { email, nick } = this.user;
-                    this.valid = false;
-                    if(rows.length === 2 || (rows[0].email === email && rows[0].nick === nick)) {
-                        this.validationError = 'Email and nick are alredy taken';
-                    } else {
-                        this.validationError = rows[0].email === email ? 'Email is alredy taken' : 'Nick is alredy taken';
-                    }
+            if(rows.length) {
+                const { email, nick } = this.user;
+                this.valid = false;
+                if(rows.length === 2 || (rows[0].email === email && rows[0].nick === nick)) {
+                    this.validationError = 'Email and nick are alredy taken';
+                } else {
+                    this.validationError = rows[0].email === email ? 'Email is alredy taken' : 'Nick is alredy taken';
                 }
+            }
 
-                observer.next(this.valid);
-                return observer.complete();
-                
-            }, () => new ServerErrorFilter());
+            observer.next(this.valid);
+            return observer.complete();
+            
         });
     }
 
@@ -69,25 +68,26 @@ class NewUser {
     }
 
     save(): Observable<NewFullUserType> {
-        return Observable.create(observer => {
+        return Observable.create(async observer => {
 
             bcrypt.hash(this.user.password, parseInt(process.env.BCRYPT_SALT))
-                .then( hash => {
+                .then( async hash => {
                     let { email, name, surname, nick } = this.user;
 
-                    this.databaseService.query(`
+                    const user = await this.databaseService.query(observer, `
                         INSERT INTO users
                         (email, password, name, surname, nick)
                         VALUES ($1, $2, $3, $4, $5)
                         RETURNING user_id, email, name, surname, nick;
-                    `,[email, hash, name, surname, nick]
+                    `, [email, hash, name, surname, nick]
                     ).pipe(
                         take(1),
                         map( rows => rows[0] )
-                    ).subscribe( (user) => {
-                        observer.next(user);
-                        observer.complete();
-                }, err => observer.error(err));
+                    ).toPromise();
+
+                    observer.next(user);
+                    observer.complete();
+                
             })
             .catch( () => observer.error(new ServerErrorFilter()));
         });

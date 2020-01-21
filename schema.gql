@@ -25,6 +25,7 @@ type Mutation {
   AcceptTeamInvitation(team_id: ID!): TeamMember!
   LeaveTeam(team_id: ID!): TeamMember!
   DeleteTeam(team_id: ID!): Team!
+  KickOutOfTheTeam(team_id: ID!, user_id: ID!): TeamMember!
 }
 
 type Notifications {

@@ -10,11 +10,11 @@ export class NotificationService {
     constructor(private readonly databaseService: DatabaseService) { }
 
     getNotifications({ req }): Observable<any> {
-        return Observable.create( observer => {
+        return Observable.create( async observer => {
 
             const { user_id } = req.authUser;
 
-            this.databaseService.query(`
+            const teamInvitations = await this.databaseService.query(observer, `
                 SELECT t.team_id, t.name, u.user_id as owner_id, u.name as owner_name, u.nick as owner_nick, u.surname as owner_surname,
                 (SELECT (COUNT(team_id) + 1) as count FROM team_members WHERE team_id = t.team_id) as members_count
                 FROM team_members tm
@@ -24,15 +24,12 @@ export class NotificationService {
             `, [user_id]).pipe(
                 take(1),
                 map( mapTeams )
-            ).subscribe(
-                teamInvitations => {
-                    observer.next({
-                        teamInvitations
-                    });
-                    return observer.complete();
-                },
-                err => observer.error(err)
-            );
+            ).toPromise();
+    
+            observer.next({
+                teamInvitations
+            });
+            return observer.complete();                
 
         });
     }
