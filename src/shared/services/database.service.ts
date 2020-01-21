@@ -28,6 +28,7 @@ export class DatabaseService {
                 if(rows !== 'error') {
                     observer.next(rows);
                 }
+                observer.next(false);
                 return observer.complete();
             });
         });

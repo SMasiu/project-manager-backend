@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { AddMemberType, MemberType, TeamType, NewTeamType } from "./team.type";
-import { Observable, Subject, Observer } from "rxjs";
+import { Observable, Observer } from "rxjs";
 import { take, map } from "rxjs/operators";
 import { DatabaseService } from "src/shared/services/database.service";
 import * as Joi from '@hapi/joi';
@@ -41,6 +41,10 @@ export class TeamService {
                     map( r => mapTeams(r)[0] )
                 ).toPromise();
 
+                if(!teamRes) {
+                    return observer.complete();
+                }
+
                 observer.next({...teamRes, membersCount: 1});
                 return observer.complete();    
             }
@@ -59,6 +63,10 @@ export class TeamService {
                 WHERE t.team_id = $1
             `, [teamId]).pipe(take(1)).toPromise()
                 
+            if(!rows) {
+                return observer.complete();
+            }
+
             if(rows.length) {
                 
                 const moderator = rows.find( r => sameId(r.user_id, id));
@@ -82,6 +90,10 @@ export class TeamService {
                 const rows = await this.databaseService.query(observer, `
                     SELECT owner FROM teams WHERE team_id = $1 LIMIT 1;
                 `, [teamId]).pipe(take(1)).toPromise();
+
+                if(!rows) {
+                    return observer.complete();
+                }
 
                 if(!rows.length) {
                     return observer.error(new NotFoundErrorFilter('Team not found'));
@@ -122,6 +134,10 @@ export class TeamService {
                 map( r =>this.mapMembers(r)[0] )
             ).toPromise();
                 
+            if(!ins) {
+                return observer.complete();
+            }
+
             observer.next(ins);
             return observer.complete();
             
@@ -151,6 +167,10 @@ export class TeamService {
                 map( mapTeams )
             ).toPromise();
                 
+            if(!rows) {
+                return observer.complete();
+            }
+
             observer.next(rows);
             return observer.complete();
 
@@ -171,10 +191,11 @@ export class TeamService {
                 WHERE team_id = $1
                 LIMIT 1)
                 ORDER BY permission DESC;
-            `, [id]).pipe(
-                take(1),
-                map( this.mapMembers )
-            ).toPromise();
+            `, [id]).pipe(take(1),map( this.mapMembers )).toPromise();
+                
+            if(!members) {
+                return observer.complete();
+            }
 
             const user_id = req.authUser.user_id;
             let me = members.find( m => m.user.user_id === user_id );
@@ -221,6 +242,10 @@ export class TeamService {
                 map( this.mapMembers )
             ).toPromise();
                 
+            if(!members) {
+                return observer.complete();
+            }
+
             if(members.length) {
                 observer.next(members[0]);
                 return observer.complete();
@@ -251,6 +276,10 @@ export class TeamService {
                 map( this.mapMembers )
             ).toPromise();
 
+            if(!members) {
+                return observer.complete();
+            }
+
             if(members.length) {
                 observer.next(members[0]);
                 return observer.complete();
@@ -267,7 +296,7 @@ export class TeamService {
             const { user_id } = req.authUser;
 
             if(!await this.checkForOwnerPermission(observer, user_id, team_id).pipe(take(1)).toPromise()) {
-                return;
+                return observer.complete();
             }
 
             const team = await this.databaseService.query(observer, `
@@ -285,7 +314,11 @@ export class TeamService {
                 take(1),
                 map( r => mapTeams(r)[0] )
             ).toPromise();
-                
+
+            if(!team) {
+                return observer.complete();
+            }
+            
             observer.next(team);
             return observer.complete();
 
@@ -302,7 +335,7 @@ export class TeamService {
             }
 
             if(!await this.checkForModeratorPermission(observer, me_id, team_id).pipe(take(1)).toPromise()) {
-                return;
+                return observer.complete();
             };
                 
             const members = await this.databaseService.query(observer, `
@@ -317,6 +350,10 @@ export class TeamService {
                 JOIN users u USING(user_id)
                 LIMIT 1
             `, [team_id, user_id]).pipe(take(1), map( this.mapMembers )).toPromise();
+
+            if(!members) {
+                return observer.complete();
+            }
 
             if(!members.length) {
                 return observer.error(new NotFoundErrorFilter('User not found'))
@@ -357,6 +394,10 @@ export class TeamService {
                 LIMIT 1
             `, [team_id, user_id, permission]).pipe(take(1), map(this.mapMembers)).toPromise();
 
+            if(!members) {
+                return observer.complete();
+            }
+
             if(!members.length) {
                 return observer.error(new NotFoundErrorFilter('User not found'));
             }
@@ -378,6 +419,10 @@ export class TeamService {
             LIMIT 1;
         `, [ team_id, me_id ]).pipe(take(1)).toPromise();
         
+        if(!rows) {
+            return observer.complete();
+        }
+
         if(!rows.length) {
             obs.error(new NotFoundErrorFilter('Team or user not found'));
             observer.next(false);
@@ -417,7 +462,11 @@ export class TeamService {
                 WHERE user_id = $1 AND team_id = $2
                 LIMIT 1;
             `, [user_id, team_id]).pipe(take(1)).toPromise();
-            
+
+            if(!members) {
+                return observer.complete();
+            }
+
             if(!members.length) {
                 return observer.error(new NotFoundErrorFilter('User not found'));
             }   
@@ -427,13 +476,21 @@ export class TeamService {
                 return observer.error(new BadRequestFilter(`This user isn't a team member`));
             }
 
-            await this.databaseService.query(observer, `
+            const res1 = await this.databaseService.query(observer, `
                 INSERT INTO team_members (team_id, user_id, permission) VALUES ($1, $2, 2)
             `, [team_id, me_id]).pipe(take(1)).toPromise();
 
-            await this.databaseService.query(observer, `
+            if(!res1) {
+                return observer.complete();
+            }
+
+            const res2 =await this.databaseService.query(observer, `
                 DELETE FROM team_members WHERE user_id = $2 AND team_id = $1
             `, [team_id, user_id]).pipe(take(1)).toPromise();
+
+            if(!res2) {
+                return observer.complete();
+            }
 
             const team = await this.databaseService.query(observer, `
                 WITH updated as (
@@ -447,6 +504,10 @@ export class TeamService {
                 JOIN users u ON u.user_id = up.owner
                 LIMIT 1;
             `, [team_id, user_id]).pipe(take(1), map(mapTeams)).toPromise();
+
+            if(!team) {
+                return observer.complete();
+            }
 
             if(!team.length) {
                 return observer.error(new NotFoundErrorFilter('Team not found'));
@@ -468,6 +529,10 @@ export class TeamService {
             `, [team_id]).pipe(
                 take(1) 
             ).toPromise();
+
+            if(!teams) {
+                return observer.complete();
+            }
 
             if(!teams.length) {
                 obs.error(new NotFoundErrorFilter('Team not found'));

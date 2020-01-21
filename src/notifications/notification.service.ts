@@ -26,6 +26,10 @@ export class NotificationService {
                 map( mapTeams )
             ).toPromise();
     
+            if(!teamInvitations) {
+                return observer.complete();
+            }
+
             observer.next({
                 teamInvitations
             });

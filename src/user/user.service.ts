@@ -44,6 +44,10 @@ export class UserService {
                 SELECT user_id, password as hash, name, surname, email, nick FROM users WHERE ${userLogin} = $1 LIMIT 1;
             `, [userName.toLowerCase()]).pipe(take(1)).toPromise();
             
+            if(!rows) {
+                return observer.complete();
+            }
+
             if(rows.length) {
                 const { user_id, hash } = rows[0];
                 this.authService.verifyPassword(password, hash).pipe(take(1)).subscribe(
@@ -76,6 +80,10 @@ export class UserService {
                 SELECT user_id, name, surname, nick FROM users WHERE user_id = $1 LIMIT 1;
             `, [id]).pipe(take(1)).toPromise();
                 
+            if(!rows) {
+                return observer.complete();
+            }
+
             if(rows.length) {
                 observer.next(rows[0]);
                 return observer.complete();
@@ -113,6 +121,10 @@ export class UserService {
                 LIMIT $1
                 OFFSET $2
             `, [limit, offset, this.getFullNameTemplate(fullname)]).pipe(take(1)).toPromise();
+
+            if(!rows) {
+                return observer.complete();
+            }
 
             observer.next(rows);
             return observer.complete();
@@ -154,6 +166,10 @@ export class UserService {
                 SELECT user_id, name, surname, nick, email FROM users WHERE user_id = $1 LIMIT 1;
             `, [id]).pipe(take(1)).toPromise();
 
+            if(!rows) {
+                return observer.complete();
+            }
+
             if(rows.length) {
                 observer.next(rows[0]);
                 return observer.complete();
@@ -186,9 +202,9 @@ export class UserService {
 
             const count = await obs.pipe(
                 take(1),
-                map( rows => rows[0].count )
+                map( rows => (rows && rows[0].count) || 0 )
             ).toPromise();
-                
+
             observer.next(count);
             return observer.complete();
         });

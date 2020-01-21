@@ -46,7 +46,11 @@ class NewUser {
             const rows = await this.databaseService.query(observer, `
                 SELECT nick, email FROM users WHERE nick = $1 OR email = $2 LIMIT 2;
             `, [this.user.nick, this.user.email]).pipe(take(1)).toPromise();
-                
+
+            if(!rows) {
+                return observer.complete();
+            }
+
             if(rows.length) {
                 const { email, nick } = this.user;
                 this.valid = false;
@@ -84,6 +88,10 @@ class NewUser {
                         take(1),
                         map( rows => rows[0] )
                     ).toPromise();
+
+                    if(!user) {
+                        return observer.complete();
+                    }
 
                     observer.next(user);
                     observer.complete();
