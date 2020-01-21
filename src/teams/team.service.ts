@@ -71,8 +71,8 @@ export class TeamService {
                 
                 const moderator = rows.find( r => sameId(r.user_id, id));
                 const user = rows.find( r => sameId(r.user_id, userId));
-                
-                if((moderator && moderator.permission === 1) || sameId(rows[0].owner, id)) {
+
+                if((moderator && moderator.permission === 2) || sameId(rows[0].owner, id)) {
 
                     if(user || sameId(rows[0].owner, userId)) {
                         return observer.error(new BadRequestFilter('User is alredy team member'));
@@ -198,7 +198,7 @@ export class TeamService {
             }
 
             const user_id = req.authUser.user_id;
-            let me = members.find( m => m.user.user_id === user_id );
+            let me = members.find( m => sameId(m.user.user_id, user_id) );
             if(!me || me.permission === 0) {
                 return observer.error(new UnauthorizedErrorFilter('Unauthorized user'));
             }
@@ -369,7 +369,7 @@ export class TeamService {
         return Observable.create( async observer => {
             const me_id = req.authUser.user_id;
 
-            if(me_id === user_id) {
+            if(sameId(me_id, user_id)) {
                 return observer.error(new BadRequestFilter(`You can't change yours permission`));
             }
 
@@ -448,7 +448,7 @@ export class TeamService {
 
             const me_id = req.authUser.user_id;
 
-            if(me_id === user_id) {
+            if(sameId(me_id, user_id)) {
                 return observer.error(new BadRequestFilter('You are alredy owner'));
             }
 
