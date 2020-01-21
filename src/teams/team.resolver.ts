@@ -1,7 +1,7 @@
 import { Resolver, Mutation, Context, Args, Query } from "@nestjs/graphql";
 import { Team, TeamMember } from "./team.model";
 import { TeamService } from "./team.service";
-import { NewTeamArgs, AddMemberArgs, GetTeamArgs, TeamIdArgs, KickArgs } from "./team.args";
+import { NewTeamArgs, AddMemberArgs, GetTeamArgs, TeamIdArgs, KickArgs, PermissionArgs, ChangeOwnerArgs } from "./team.args";
 import { take } from "rxjs/operators";
 import { UseGuards } from "@nestjs/common";
 import { AuthGuard } from "src/shared/guards/auth.guard";
@@ -93,6 +93,26 @@ export class TeamResolver {
             throw err;
         }
 
+    }
+
+    @Mutation(type => TeamMember)
+    @UseGuards(AuthGuard)
+    async ChangeMemberPermission(@Args() args: PermissionArgs, @Context() ctx) {
+        try {
+            return await this.teamService.changeMemberPermission(args, ctx).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    @Mutation(type => Team)
+    @UseGuards(AuthGuard)
+    async ChangeOwner(@Args() args: ChangeOwnerArgs, @Context() ctx) {
+        try {
+            return await this.teamService.changeOwner(args, ctx).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
     }
 
 }

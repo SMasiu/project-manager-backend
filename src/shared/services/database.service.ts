@@ -27,8 +27,8 @@ export class DatabaseService {
             ).subscribe(rows => {
                 if(rows !== 'error') {
                     observer.next(rows);
-                    observer.complete();
                 }
+                return observer.complete();
             });
         });
     }

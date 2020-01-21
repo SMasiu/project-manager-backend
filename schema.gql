@@ -26,6 +26,8 @@ type Mutation {
   LeaveTeam(team_id: ID!): TeamMember!
   DeleteTeam(team_id: ID!): Team!
   KickOutOfTheTeam(team_id: ID!, user_id: ID!): TeamMember!
+  ChangeMemberPermission(team_id: ID!, user_id: ID!, permission: Int!): TeamMember!
+  ChangeOwner(team_id: ID!, user_id: ID!): Team!
 }
 
 type Notifications {
