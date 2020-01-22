@@ -103,24 +103,26 @@ export class UserService {
         }
     }
 
-    getUsers(options): Observable<UserType[]> {
+    getUsers(options, { req }): Observable<UserType[]> {
 
         const { limit, offset } = mapGetOptions(options);
-        const { fullname } = options;
+        const { fullname, team_id } = options;
+        const me_id = req.authUser.user_id;
 
         return Observable.create( async observer => {
             const rows = await this.databaseService.query(observer, `
                 WITH full_table AS(
-                    SELECT CONCAT(name, ' ',surname, ' ', nick) as fullname, user_id 
-                    FROM users
+                    SELECT CONCAT(u.name, ' ',u.surname, ' ', u.nick) as fullname, u.user_id 
+                    FROM users u
+                    WHERE u.user_id <> $5 AND NOT EXISTS (SELECT tm.team_id FROM team_members tm WHERE tm.user_id = u.user_id AND tm.team_id = $4 )
+                    LIMIT $1
+                    OFFSET $2
                 )
                 SELECT u.name, u.surname, u.nick, u.user_id
                 FROM full_table ft
                     JOIN users u USING(user_id)
                 WHERE ft.fullname SIMILAR TO $3
-                LIMIT $1
-                OFFSET $2
-            `, [limit, offset, this.getFullNameTemplate(fullname)]).pipe(take(1)).toPromise();
+            `, [limit, offset, this.getFullNameTemplate(fullname), team_id, me_id]).pipe(take(1)).toPromise();
 
             if(!rows) {
                 return observer.complete();
@@ -179,26 +181,24 @@ export class UserService {
         });
     }
 
-    getUsersCount({fullname}): Observable<number> {
+    getUsersCount({fullname, team_id}, { req }): Observable<number> {
         return Observable.create( async observer => {
 
+            const me_id = req.authUser.user_id;
             let obs: Observable<any>;
 
-            if(fullname) {
-                obs = this.databaseService.query(observer, `
-                    WITH full_table AS(
-                        SELECT CONCAT(name, ' ',surname, ' ', nick) as fullname
-                        FROM users
-                    )
-                    SELECT COUNT(fullname)
-                    FROM full_table
-                    WHERE fullname SIMILAR TO $1
-                `, [this.getFullNameTemplate(fullname)]);
-            } else {
-                obs = this.databaseService.query(observer, `
-                    SELECT COUNT(user_id) FROM users;
-                `);
-            }
+            obs = this.databaseService.query(observer, `
+                WITH full_table AS(
+                    SELECT CONCAT(u.name, ' ',u.surname, ' ', u.nick) as fullname, u.user_id 
+                    FROM users u
+                    WHERE u.user_id <> $2 AND NOT EXISTS (SELECT tm.team_id FROM team_members tm WHERE tm.user_id = u.user_id AND tm.team_id = $3 )
+                )
+                SELECT COUNT(fullname)
+                FROM full_table
+                WHERE fullname SIMILAR TO $1
+
+            `, [this.getFullNameTemplate(fullname), me_id, team_id]);
+        
 
             const count = await obs.pipe(
                 take(1),

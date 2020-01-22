@@ -151,14 +151,14 @@ export class TeamService {
 
             const rows = await this.databaseService.query(observer, `
                 SELECT t.team_id, t.name, u.user_id as owner_id, u.name as owner_name, u.nick as owner_nick, u.surname as owner_surname,
-                (SELECT (COUNT(team_id) + 1) as count FROM team_members WHERE team_id = t.team_id) as members_count
+                (SELECT (COUNT(team_id) + 1) as count FROM team_members WHERE team_id = t.team_id AND permission <> 0) as members_count
                 FROM team_members tm
                 JOIN teams t USING(team_id)
                 JOIN users u ON t.owner = u.user_id
                 WHERE tm.user_id = $1 AND tm.permission <> 0
                 UNION
                 SELECT t.team_id, t.name, u.user_id as owner_id, u.name as owner_name, u.nick as owner_nick, u.surname as owner_surname,
-                    (SELECT (COUNT(team_id) + 1) as count FROM team_members WHERE team_id = t.team_id) as members_count
+                    (SELECT (COUNT(team_id) + 1) as count FROM team_members WHERE team_id = t.team_id AND permission <> 0) as members_count
                 FROM teams t
                 JOIN users u ON t.owner = u.user_id
                 WHERE owner = $1
@@ -296,6 +296,14 @@ export class TeamService {
             const { user_id } = req.authUser;
 
             if(!await this.checkForOwnerPermission(observer, user_id, team_id).pipe(take(1)).toPromise()) {
+                return observer.complete();
+            }
+
+            const deletedMembers = await this.databaseService.query(observer, `
+                DELETE FROM team_members WHERE team_id = $1;
+            `, [team_id]).pipe(take(1)).toPromise();
+
+            if(!deletedMembers) {
                 return observer.complete();
             }
 

@@ -41,10 +41,16 @@ export class UserArgs {
 export class CountUserArgs {
     @Field(type => String, { nullable: true, defaultValue: '' })
     fullname: string;
+
+    @Field(type => ID, {nullable: true, defaultValue: ''})
+    team_id: string;
 }
 
 @ArgsType()
 export class GetUserArgs extends GetOptionsArgs {
     @Field(type => String, { nullable: true, defaultValue: '' })
     fullname: string;
+
+    @Field(type => ID, {nullable: true, defaultValue: ''})
+    team_id: string;
 }

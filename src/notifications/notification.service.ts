@@ -16,7 +16,7 @@ export class NotificationService {
 
             const teamInvitations = await this.databaseService.query(observer, `
                 SELECT t.team_id, t.name, u.user_id as owner_id, u.name as owner_name, u.nick as owner_nick, u.surname as owner_surname,
-                (SELECT (COUNT(team_id) + 1) as count FROM team_members WHERE team_id = t.team_id) as members_count
+                (SELECT (COUNT(team_id) + 1) as count FROM team_members WHERE team_id = t.team_id AND permission <> 0) as members_count
                 FROM team_members tm
                 JOIN teams t USING(team_id)
                 JOIN users u ON t.owner = u.user_id

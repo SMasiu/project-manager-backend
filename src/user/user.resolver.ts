@@ -23,9 +23,9 @@ export class UserResolver {
 
     @Query(type => [User])
     @UseGuards(AuthGuard)
-    async Users(@Args() args: GetUserArgs) {
+    async Users(@Args() args: GetUserArgs, @Context() ctx) {
         try {
-            return await this.userService.getUsers(args).pipe(take(1)).toPromise();
+            return await this.userService.getUsers(args, ctx).pipe(take(1)).toPromise();
         } catch (err) {
             throw err;
         }
@@ -33,9 +33,9 @@ export class UserResolver {
 
     @Query(type => Int)
     @UseGuards(AuthGuard)
-    async UsersCount(@Args() args: CountUserArgs) {
+    async UsersCount(@Args() args: CountUserArgs, @Context() ctx) {
         try {
-            return await this.userService.getUsersCount(args).pipe(take(1)).toPromise();
+            return await this.userService.getUsersCount(args, ctx).pipe(take(1)).toPromise();
         } catch (err) {
             throw err;
         }
@@ -43,11 +43,11 @@ export class UserResolver {
 
     @Query(type => UsersAndCount)
     @UseGuards(AuthGuard)
-    async GetUsersAndCount(@Args() args: GetUserArgs) {
+    async GetUsersAndCount(@Args() args: GetUserArgs, @Context() ctx) {
         try {
             
-            const users = await this.userService.getUsers(args).pipe(take(1)).toPromise();
-            const count = await this.userService.getUsersCount(args).pipe(take(1)).toPromise();
+            const users = await this.userService.getUsers(args, ctx).pipe(take(1)).toPromise();
+            const count = await this.userService.getUsersCount(args, ctx).pipe(take(1)).toPromise();
     
             return {
                 users,
