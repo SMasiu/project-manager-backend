@@ -114,7 +114,9 @@ export class UserService {
                 WITH full_table AS(
                     SELECT CONCAT(u.name, ' ',u.surname, ' ', u.nick) as fullname, u.user_id 
                     FROM users u
-                    WHERE u.user_id <> $5 AND NOT EXISTS (SELECT tm.team_id FROM team_members tm WHERE tm.user_id = u.user_id AND tm.team_id = $4 )
+                    WHERE u.user_id <> $5 
+                        AND NOT EXISTS (SELECT tm.team_id FROM team_members tm WHERE tm.user_id = u.user_id AND tm.team_id = $4 LIMIT 1)
+                        AND NOT EXISTS (SELECT t.owner FROM teams t WHERE t.owner = u.user_id AND t.team_id =$4 LIMIT 1)
                     LIMIT $1
                     OFFSET $2
                 )
@@ -191,7 +193,9 @@ export class UserService {
                 WITH full_table AS(
                     SELECT CONCAT(u.name, ' ',u.surname, ' ', u.nick) as fullname, u.user_id 
                     FROM users u
-                    WHERE u.user_id <> $2 AND NOT EXISTS (SELECT tm.team_id FROM team_members tm WHERE tm.user_id = u.user_id AND tm.team_id = $3 )
+                    WHERE u.user_id <> $2
+                        AND NOT EXISTS (SELECT tm.team_id FROM team_members tm WHERE tm.user_id = u.user_id AND tm.team_id = $3 LIMIT 1)
+                        AND NOT EXISTS (SELECT t.owner FROM teams t WHERE t.owner = u.user_id AND t.team_id = $3 LIMIT 1)
                 )
                 SELECT COUNT(fullname)
                 FROM full_table

@@ -24,6 +24,16 @@ class Migration {
         permission INTEGER NOT NULL
     `)
 
+    private friendsInvitationTable = this.createTable('friends_invitations', `
+        from_id INTEGER references users(user_id) NOT NULL,
+        to_id INTEGER references users(user_id) NOT NULL
+    `)
+
+    private friendsTable = this.createTable('friends', `
+        user_id_1 INTEGER references users(user_id) NOT NULL,
+        user_id_2 INTEGER references users(user_id) NOT NULL
+    `)
+
     private createTable(name: string, fields: string) {
         return `
             CREATE TABLE IF NOT EXISTS ${name} (
@@ -36,7 +46,9 @@ class Migration {
         return concat(
             db.client.query(this.usersTable),
             db.client.query(this.teamsTable),
-            db.client.query(this.teamMembersTable)
+            db.client.query(this.teamMembersTable),
+            db.client.query(this.friendsInvitationTable),
+            db.client.query(this.friendsTable)
         )
     }
 

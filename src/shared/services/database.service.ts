@@ -34,7 +34,7 @@ export class DatabaseService {
         });
     }
 
-    queryMany(queries: {sql: string, args?: any[]}[]): Observable<any[]> {
+    queryMany(obs: Observer<any>, queries: {sql: string, args?: any[]}[]): Observable<any[]> {
         return Observable.create(observer => {
             let queryAll = queries.map( ({sql, args}) => this.client.query(sql, args));
 
@@ -43,17 +43,19 @@ export class DatabaseService {
                 map( res => res.map(r => r.rows)),
                 catchError( err => {
                     console.log(err)
+                    obs.error(new ServerErrorFilter());
                     return of('error')
                 } )
             ).subscribe(rows => {
-               if(rows === 'error') {
-                   observer.error(new ServerErrorFilter());
-               } else {
+                
+                if(rows !== 'error') {
                    observer.next(rows);
-                   observer.complete();
-               }
-            });
+                }
 
+                observer.complete();
+                observer.next(false);
+               
+            });
         });
 
     }

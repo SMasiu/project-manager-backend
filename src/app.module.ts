@@ -7,6 +7,7 @@ import { formatError } from './graphql/error';
 import { TeamModule } from './teams/team.module';
 import { NotificationModule } from './notifications/notification.module';
 import { DatabaseService } from './shared/services/database.service';
+import { FriendsModule } from './friends/friends.module';
 
 @Module({
 	imports: [
@@ -29,6 +30,7 @@ import { DatabaseService } from './shared/services/database.service';
 		UserModule,
 		TeamModule,
 		NotificationModule,
+		FriendsModule
 	],
 	controllers: [AppController],
 	providers: [AppService],

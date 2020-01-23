@@ -3,6 +3,16 @@
 # !!!   DO NOT MODIFY THIS FILE BY YOURSELF   !!!
 # -----------------------------------------------
 
+type FriendInvitation {
+  from: User!
+  to: User!
+}
+
+type Friends {
+  user_1: User!
+  user_2: User!
+}
+
 type Me {
   user_id: ID!
   name: String!
@@ -28,10 +38,12 @@ type Mutation {
   KickOutOfTheTeam(team_id: ID!, user_id: ID!): TeamMember!
   ChangeMemberPermission(team_id: ID!, user_id: ID!, permission: Int!): TeamMember!
   ChangeOwner(team_id: ID!, user_id: ID!): Team!
+  InviteFriend(user_id: ID!): FriendInvitation!
 }
 
 type Notifications {
   teamInvitations: [Team!]!
+  friendInvitations: [User!]!
 }
 
 type Query {
