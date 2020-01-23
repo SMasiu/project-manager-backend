@@ -507,7 +507,8 @@ export class TeamService {
                     WHERE team_id = $1
                     RETURNING owner, team_id, name
                 )
-                SELECT u.name as owner_name, u.surname as sowner_surname, u.nick as owner_nick, u.user_id as owner_id, up.name, up.team_id
+                SELECT u.name as owner_name, u.surname as owner_surname, u.nick as owner_nick, u.user_id as owner_id, up.name, up.team_id,
+                    (SELECT (COUNT(team_id) + 1) as count FROM team_members WHERE team_id = $1 AND permission <> 0) as members_count
                 FROM updated up
                 JOIN users u ON u.user_id = up.owner
                 LIMIT 1;
