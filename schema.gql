@@ -8,11 +8,6 @@ type FriendInvitation {
   to: User!
 }
 
-type Friends {
-  user_1: User!
-  user_2: User!
-}
-
 type Me {
   user_id: ID!
   name: String!
@@ -39,6 +34,10 @@ type Mutation {
   ChangeMemberPermission(team_id: ID!, user_id: ID!, permission: Int!): TeamMember!
   ChangeOwner(team_id: ID!, user_id: ID!): Team!
   InviteFriend(user_id: ID!): FriendInvitation!
+  RejectFriendInvitation(user_id: ID!): User!
+  AcceptFriendInvitation(user_id: ID!): User!
+  CancelFriendInvitation(user_id: ID!): User!
+  DeleteFriend(user_id: ID!): User!
 }
 
 type Notifications {
@@ -55,6 +54,7 @@ type Query {
   TeamMembers(id: ID!): [TeamMember!]!
   Teams: [Team!]!
   GetNotifications: Notifications!
+  GetFriends: [User!]!
 }
 
 type Team {

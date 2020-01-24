@@ -9,12 +9,3 @@ export class FriendInvitation {
     @Field(type => User)
     to: User;
 }
-
-@ObjectType()
-export class Friends {
-    @Field(type => User)
-    user_1: User;
-
-    @Field(type => User)
-    user_2: User;
-}
