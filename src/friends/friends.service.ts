@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import { Observable } from "rxjs";
-import { FriendInvitation } from "./friends.model";
 import { sameId } from "src/shared/functions/same-id";
 import { BadRequestFilter, NotFoundErrorFilter } from "src/shared/filters/error.filter";
 import { DatabaseService } from "src/shared/services/database.service";
@@ -12,7 +11,7 @@ export class FriendsService {
 
     constructor(private readonly databaseService: DatabaseService) { }
 
-    inviteFriend({ user_id }, { req }): Observable<FriendInvitation> {
+    inviteFriend({ user_id }, { req }): Observable<User> {
         return Observable.create(  async observer => {
 
             const me_id = req.authUser.user_id;
@@ -48,17 +47,18 @@ export class FriendsService {
                 )
                 SELECT u.name, u.surname, u.nick, u.user_id
                 FROM ins i
-                JOIN users u ON u.user_id = i.from_id OR u.user_id = to_id
+                JOIN users u ON u.user_id = to_id
             `, [me_id, user_id]).pipe(take(1)).toPromise();
 
             if(!users) {
                 return observer.complete();
             }
 
-            observer.next({
-                from: users.find( u => sameId(u.user_id, me_id) ),
-                to: users.find( u => sameId(u.user_id, user_id) )
-            });
+            if(!users.length) {
+                return observer.error(new NotFoundErrorFilter('User not found'));
+            }
+            console.log(users[0])
+            observer.next(users[0]);
 
             return observer.complete();
 
@@ -198,6 +198,28 @@ export class FriendsService {
             return observer.complete();
 
         });        
+    }
+
+    getInvitedFriends({ req }): Observable<User[]> {
+        return Observable.create( async observer => {
+
+            const { user_id } = req.authUser;
+
+            const friends = await this.databaseService.query(observer, `
+                SELECT u.name, u.surname, u.nick, u.user_id
+                FROM friends_invitations f
+                JOIN users u ON u.user_id = f.to_id
+                WHERE f.from_id = $1;
+            `, [user_id]).pipe(take(1)).toPromise();
+
+            if(!friends) {
+                return observer.complete();
+            }
+
+            observer.next(friends);
+            return observer.complete();
+
+        });
     }
 
     deleteFriend({ user_id }, { req }): Observable<User> {

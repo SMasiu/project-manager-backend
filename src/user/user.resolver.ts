@@ -45,7 +45,7 @@ export class UserResolver {
     @UseGuards(AuthGuard)
     async GetUsersAndCount(@Args() args: GetUserArgs, @Context() ctx) {
         try {
-            
+    
             const users = await this.userService.getUsers(args, ctx).pipe(take(1)).toPromise();
             const count = await this.userService.getUsersCount(args, ctx).pipe(take(1)).toPromise();
     

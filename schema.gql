@@ -3,9 +3,9 @@
 # !!!   DO NOT MODIFY THIS FILE BY YOURSELF   !!!
 # -----------------------------------------------
 
-type FriendInvitation {
-  from: User!
-  to: User!
+type AllFriends {
+  my: [User!]!
+  invited: [User!]!
 }
 
 type Me {
@@ -33,7 +33,7 @@ type Mutation {
   KickOutOfTheTeam(team_id: ID!, user_id: ID!): TeamMember!
   ChangeMemberPermission(team_id: ID!, user_id: ID!, permission: Int!): TeamMember!
   ChangeOwner(team_id: ID!, user_id: ID!): Team!
-  InviteFriend(user_id: ID!): FriendInvitation!
+  InviteFriend(user_id: ID!): User!
   RejectFriendInvitation(user_id: ID!): User!
   AcceptFriendInvitation(user_id: ID!): User!
   CancelFriendInvitation(user_id: ID!): User!
@@ -55,6 +55,8 @@ type Query {
   Teams: [Team!]!
   GetNotifications: Notifications!
   GetFriends: [User!]!
+  GetInvitedFriends: [User!]!
+  GetAllFriends: AllFriends!
 }
 
 type Team {

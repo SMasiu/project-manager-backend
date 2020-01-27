@@ -1,6 +1,6 @@
 import { Resolver, Mutation, Args, Context, Query } from "@nestjs/graphql";
 import { FriendsService } from "./friends.service";
-import { FriendInvitation } from "./friends.model";
+import { AllFriends } from "./friends.model";
 import { UseGuards } from "@nestjs/common";
 import { AuthGuard } from "src/shared/guards/auth.guard";
 import { InviteFriendArgs, FriendIdArgs } from "./friends.args";
@@ -12,7 +12,7 @@ export class FriendsResolver {
 
     constructor(private friendsService: FriendsService) { }
 
-    @Mutation(type => FriendInvitation)
+    @Mutation(type => User)
     @UseGuards(AuthGuard)
     async InviteFriend(@Args() args: InviteFriendArgs, @Context() ctx) {
         try {
@@ -57,6 +57,36 @@ export class FriendsResolver {
     async GetFriends(@Context() ctx) {
         try {
             return await this.friendsService.getMyFriends(ctx).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    @Query(type => [User])
+    @UseGuards(AuthGuard)
+    async GetInvitedFriends(@Context() ctx) {
+        try {
+            return await this.friendsService.getInvitedFriends(ctx).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    @Query(type => AllFriends)
+    @UseGuards(AuthGuard)
+    async GetAllFriends(@Context() ctx) {
+        try {
+
+            const [my, invited] = await Promise.all([
+                this.friendsService.getMyFriends(ctx).pipe(take(1)).toPromise(),
+                this.friendsService.getInvitedFriends(ctx).pipe(take(1)).toPromise()
+            ]);
+
+            return ({
+                my,
+                invited 
+            })
+
         } catch (err) {
             throw err;
         }
