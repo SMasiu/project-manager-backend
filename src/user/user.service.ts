@@ -106,17 +106,58 @@ export class UserService {
     getUsers(options, { req }): Observable<UserType[]> {
 
         const { limit, offset } = mapGetOptions(options);
-        const { fullname, team_id } = options;
+        const { fullname, team_id, friends } = options;
         const me_id = req.authUser.user_id;
+
+        const params = [limit, offset, this.getFullNameTemplate(fullname), me_id];
+
+        const getIfTeam = () => {
+            if(team_id) {
+                params.push(team_id);
+                return (`
+                    AND NOT EXISTS (
+                        SELECT tm.team_id
+                        FROM team_members tm
+                        WHERE tm.user_id = u.user_id AND tm.team_id = $5
+                        LIMIT 1
+                    )
+                    AND NOT EXISTS (
+                        SELECT t.owner
+                        FROM teams t WHERE t.owner = u.user_id AND t.team_id = $5
+                        LIMIT 1
+                    )
+                `);
+            }
+            return '';
+        };
+
+        const getIfNotFriends = () => friends ? '' : `
+            AND NOT EXISTS (
+                SELECT f.user_id_1
+                FROM friends f
+                WHERE
+                    ($4 = f.user_id_1 AND f.user_id_2 = u.user_id) OR
+                    ($4 = f.user_id_2 AND f.user_id_1 = u.user_id)
+                LIMIT 1
+            )
+		    AND NOT EXISTS (
+                SELECT fi.to_id
+                FROM friends_invitations fi
+                WHERE
+                    ($4 = fi.to_id AND fi.from_id = u.user_id) OR
+                    ($4 = fi.from_id AND fi.to_id = u.user_id)
+                LIMIT 1
+            )
+        `;
 
         return Observable.create( async observer => {
             const rows = await this.databaseService.query(observer, `
                 WITH full_table AS(
                     SELECT CONCAT(u.name, ' ',u.surname, ' ', u.nick) as fullname, u.user_id 
                     FROM users u
-                    WHERE u.user_id <> $5 
-                        AND NOT EXISTS (SELECT tm.team_id FROM team_members tm WHERE tm.user_id = u.user_id AND tm.team_id = $4 LIMIT 1)
-                        AND NOT EXISTS (SELECT t.owner FROM teams t WHERE t.owner = u.user_id AND t.team_id =$4 LIMIT 1)
+                    WHERE u.user_id <> $4
+                        ${getIfTeam()}
+                        ${getIfNotFriends()}
                     LIMIT $1
                     OFFSET $2
                 )
@@ -124,7 +165,7 @@ export class UserService {
                 FROM full_table ft
                     JOIN users u USING(user_id)
                 WHERE ft.fullname SIMILAR TO $3
-            `, [limit, offset, this.getFullNameTemplate(fullname), team_id, me_id]).pipe(take(1)).toPromise();
+            `, params).pipe(take(1)).toPromise();
 
             if(!rows) {
                 return observer.complete();
@@ -183,25 +224,67 @@ export class UserService {
         });
     }
 
-    getUsersCount({fullname, team_id}, { req }): Observable<number> {
+    getUsersCount({fullname, team_id, friends}, { req }): Observable<number> {
         return Observable.create( async observer => {
 
             const me_id = req.authUser.user_id;
             let obs: Observable<any>;
+
+            const params = [this.getFullNameTemplate(fullname), me_id]
+
+            const getIfTeam = () => {
+                if(team_id) {
+                    params.push(team_id);
+                    return (`
+                            AND NOT EXISTS (
+                                SELECT tm.team_id
+                                FROM team_members tm
+                                WHERE tm.user_id = u.user_id AND tm.team_id = $3
+                                LIMIT 1
+                            )
+                            AND NOT EXISTS (
+                                SELECT t.owner
+                                FROM teams t
+                                WHERE t.owner = u.user_id AND t.team_id = $3
+                                LIMIT 1
+                            )
+                        `);
+                }
+                return '';
+            }
+
+            const getIfNotFriends = () => friends ? '' : `
+                AND NOT EXISTS (
+                    SELECT f.user_id_1
+                    FROM friends f
+                    WHERE
+                        ($2 = f.user_id_1 AND f.user_id_2 = u.user_id) OR 
+                        ($2 = f.user_id_2 AND f.user_id_1 = u.user_id)
+                    LIMIT 1
+                )
+                AND NOT EXISTS (
+                    SELECT fi.to_id
+                    FROM friends_invitations fi
+                    WHERE 
+                        ($2 = fi.to_id AND fi.from_id = u.user_id) OR
+                        ($2 = fi.from_id AND fi.to_id = u.user_id)
+                    LIMIT 1
+                )
+            `;
+
 
             obs = this.databaseService.query(observer, `
                 WITH full_table AS(
                     SELECT CONCAT(u.name, ' ',u.surname, ' ', u.nick) as fullname, u.user_id 
                     FROM users u
                     WHERE u.user_id <> $2
-                        AND NOT EXISTS (SELECT tm.team_id FROM team_members tm WHERE tm.user_id = u.user_id AND tm.team_id = $3 LIMIT 1)
-                        AND NOT EXISTS (SELECT t.owner FROM teams t WHERE t.owner = u.user_id AND t.team_id = $3 LIMIT 1)
+                    ${getIfTeam()}
+                    ${getIfNotFriends()}
                 )
                 SELECT COUNT(fullname)
                 FROM full_table
                 WHERE fullname SIMILAR TO $1
-
-            `, [this.getFullNameTemplate(fullname), me_id, team_id]);
+            `, params);
         
 
             const count = await obs.pipe(

@@ -47,9 +47,9 @@ type Notifications {
 
 type Query {
   User(id: ID!): User!
-  Users(limit: Int, offset: Int, fullname: String = "", team_id: ID = ""): [User!]!
-  UsersCount(fullname: String = "", team_id: ID = ""): Int!
-  GetUsersAndCount(limit: Int, offset: Int, fullname: String = "", team_id: ID = ""): UsersAndCount!
+  Users(limit: Int, offset: Int, fullname: String = "", team_id: ID = "", friends: Boolean = true): [User!]!
+  UsersCount(limit: Int, offset: Int, fullname: String = "", team_id: ID = "", friends: Boolean = true): Int!
+  GetUsersAndCount(limit: Int, offset: Int, fullname: String = "", team_id: ID = "", friends: Boolean = true): UsersAndCount!
   CheckUserStatus: MeStatus!
   TeamMembers(id: ID!): [TeamMember!]!
   Teams: [Team!]!

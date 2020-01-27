@@ -25,6 +25,10 @@ export class FriendsService {
                 SELECT from_id
                 FROM friends_invitations
                 WHERE (from_id = $1 AND to_id = $2) OR (to_id = $1 AND from_id = $2)
+                UNION
+                SELECT 0 as from_id
+                FROM friends
+                WHERE (user_id_1 = $1 AND user_id_2 = $2) OR (user_id_2 = $1 AND user_id_1 = $2)
                 LIMIT 1;
             `, [me_id, user_id]).pipe(take(1)).toPromise();
 
@@ -33,7 +37,7 @@ export class FriendsService {
             }
 
             if(rows.length) {
-                return observer.error(new BadRequestFilter('There is alredy invitation like this'));
+                return observer.error(new BadRequestFilter('There is alredy invitation like this or you are alredy friends'));
             }
 
             const users = await this.databaseService.query(observer, `
