@@ -57,7 +57,7 @@ export class FriendsService {
             if(!users.length) {
                 return observer.error(new NotFoundErrorFilter('User not found'));
             }
-            console.log(users[0])
+            
             observer.next(users[0]);
 
             return observer.complete();
