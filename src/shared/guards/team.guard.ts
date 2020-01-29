@@ -52,3 +52,22 @@ export class TeamGuard implements CanActivate {
     }
 
 }
+
+@Injectable()
+export class TeamRequiredGuard implements CanActivate {
+    canActivate(context: ExecutionContextHost): Observable<boolean> {
+        return Observable.create( observer => {
+
+            const req = context.getArgs()[2].req;
+            const { meInTeam } = req;
+
+            if(!meInTeam) {
+                return observer.error(new UnauthorizedErrorFilter('Unauthorized user permission'));
+            }
+
+            observer.next(true);
+            return observer.complete();
+
+        });
+    }
+}

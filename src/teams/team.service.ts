@@ -317,14 +317,8 @@ export class TeamService {
         });
     }
 
-    deleteTeam(team_id: string, { req }): Observable<TeamType> {
+    deleteTeam(team_id: string): Observable<TeamType> {
         return Observable.create( async observer => {
-
-            const { user_id } = req.authUser;
-
-            if(!await this.checkForOwnerPermission(observer, user_id, team_id).pipe(take(1)).toPromise()) {
-                return observer.complete();
-            }
 
             const deletedMembers = await this.databaseService.query(observer, `
                 DELETE FROM team_members WHERE team_id = $1;
@@ -368,10 +362,6 @@ export class TeamService {
             if(sameId(me_id, user_id)) {
                 return observer.error(new BadRequestFilter(`You can't kick yourself gtom team`));
             }
-
-            if(!await this.checkForModeratorPermission(observer, me_id, team_id).pipe(take(1)).toPromise()) {
-                return observer.complete();
-            };
                 
             const members = await this.databaseService.query(observer, `
                 WITH deleted AS(
@@ -412,10 +402,6 @@ export class TeamService {
                 return observer.error(new BadRequestFilter('Invalid permision'));
             }
 
-            if(!await this.checkForModeratorPermission(observer, me_id, team_id).pipe(take(1)).toPromise()) {
-                return observer.complete();
-            }
-
             const members = await this.databaseService.query(observer, `
                 WITH updated AS(
                     UPDATE team_members
@@ -443,41 +429,6 @@ export class TeamService {
         });
     }
 
-    checkForModeratorPermission(obs: Observer<any>, me_id: string, team_id: string) {
-        return Observable.create( async observer => {
-
-        const rows = await this.databaseService.query(observer, `
-            SELECT tm.user_id, tm.permission, t.owner
-            FROM team_members tm
-            JOIN teams t USING(team_id)
-            WHERE (tm.user_id = $2 OR t.owner = $2) AND tm.team_id = $1
-            LIMIT 1;
-        `, [ team_id, me_id ]).pipe(take(1)).toPromise();
-        
-        if(!rows) {
-            return observer.complete();
-        }
-
-        if(!rows.length) {
-            obs.error(new NotFoundErrorFilter('Team or user not found'));
-            observer.next(false);
-            return observer.complete();
-        }
-    
-        let row = rows[0];
-
-            if(sameId(me_id, row.owner) || (sameId(me_id, row.user_id) && row.permission === 2)) {
-                observer.next(row);
-                return observer.complete();
-            }
-            
-            obs.error(new UnauthorizedErrorFilter('Unauthorized user'));
-            observer.next(false);
-            return observer.complete();
-
-        });
-    }
-
     changeOwner({ team_id, user_id }, { req }) {
         return Observable.create( async observer => {
 
@@ -485,10 +436,6 @@ export class TeamService {
 
             if(sameId(me_id, user_id)) {
                 return observer.error(new BadRequestFilter('You are alredy owner'));
-            }
-
-            if(!await this.checkForOwnerPermission(observer, me_id, team_id).pipe(take(1)).toPromise()) {
-                return observer.complete();
             }
 
             const members = await this.databaseService.query(observer, `
@@ -553,38 +500,6 @@ export class TeamService {
             return observer.complete();
 
         });
-    }
-
-    checkForOwnerPermission(obs: Observer<any>, me_id: string, team_id: string) {
-        return Observable.create( async observer => {
-            const teams = await this.databaseService.query(observer, `
-                SELECT owner
-                FROM teams
-                WHERE team_id = $1
-                LIMIT 1;
-            `, [team_id]).pipe(
-                take(1) 
-            ).toPromise();
-
-            if(!teams) {
-                return observer.complete();
-            }
-
-            if(!teams.length) {
-                obs.error(new NotFoundErrorFilter('Team not found'));
-                observer.next(false);
-                return observer.complete();
-            }
-
-            if(!sameId(me_id, teams[0].owner)) {
-                obs.error(new UnauthorizedErrorFilter('Unauthorized user'));
-                observer.next(false);
-                return observer.complete();
-            }
-
-            observer.next(true);
-            return observer.complete();
-        })
     }
 
 }

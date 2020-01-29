@@ -32,6 +32,7 @@ export class ProjectsResolver {
     async GetTeam(@Parent() project, @Context() ctx) {
 
         const {team} = project;
+
         if(team) {
             return await this.teamService.getTeamById(team).pipe(take(1)).toPromise();
         } else {

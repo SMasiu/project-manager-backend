@@ -14,18 +14,14 @@ export class TeamModeratorGuard implements CanActivate {
 
             const { meInTeam } = req;
             const { user_id } = req.authUser;
-
-            if(!meInTeam) {
-                return observer.error(new UnauthorizedErrorFilter('Unauthorized user permission'));
-            }
-    
-            if(sameId(meInTeam.owner, user_id)) {
+            
+            if(!meInTeam || sameId(meInTeam.owner, user_id)) {
                 observer.next(true);
                 return observer.complete();
             }
 
             if(meInTeam.permission !== 2) {
-                return observer.error(new UnauthorizedErrorFilter('Unauthorized user permission'));
+                return observer.error(new UnauthorizedErrorFilter('Unauthorized user permission:moderator'));
             }
     
             observer.next(true);
@@ -48,16 +44,12 @@ export class TeamOwnerGuard implements CanActivate {
             const { meInTeam } = req;
             const { user_id } = req.authUser;
 
-            if(!meInTeam) {
-                return observer.error(new UnauthorizedErrorFilter('Unauthorized user permission'));
-            }
-    
-            if(sameId(meInTeam.owner, user_id)) {
+            if(!meInTeam || sameId(meInTeam.owner, user_id)) {
                 observer.next(true);
                 return observer.complete();
             }
 
-            return observer.error(new UnauthorizedErrorFilter('Unauthorized user permission'));
+            return observer.error(new UnauthorizedErrorFilter('Unauthorized user permission:owner'));
 
         });
 

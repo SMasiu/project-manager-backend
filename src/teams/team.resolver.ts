@@ -5,8 +5,9 @@ import { NewTeamArgs, AddMemberArgs, GetTeamArgs, TeamIdArgs, KickArgs, Permissi
 import { take } from "rxjs/operators";
 import { UseGuards } from "@nestjs/common";
 import { AuthGuard } from "src/shared/guards/auth.guard";
-import { Subject } from "rxjs";
-import { MemberType } from "./team.type";
+import { TeamGuard, TeamRequiredGuard } from "src/shared/guards/team.guard";
+import { TeamOwnerGuard, TeamModeratorGuard } from "src/shared/guards/team-permission.guard";
+import { TeamModule } from "./team.module";
 
 @Resolver()
 export class TeamResolver {
@@ -74,17 +75,17 @@ export class TeamResolver {
     }
     
     @Mutation(type => Team)
-    @UseGuards(AuthGuard)
-    async DeleteTeam(@Args() args: TeamIdArgs, @Context() ctx) {
+    @UseGuards(AuthGuard, TeamGuard, TeamOwnerGuard, TeamRequiredGuard)
+    async DeleteTeam(@Args() args: TeamIdArgs) {
         try {
-            return await this.teamService.deleteTeam(args.team_id, ctx).pipe(take(1)).toPromise();
+            return await this.teamService.deleteTeam(args.team_id).pipe(take(1)).toPromise();
         } catch (err) {
             throw err;
         }
     }
 
     @Mutation(type => TeamMember)
-    @UseGuards(AuthGuard)
+    @UseGuards(AuthGuard, TeamGuard, TeamModeratorGuard, TeamRequiredGuard)
     async KickOutOfTheTeam(@Args() args: KickArgs, @Context() ctx) {
 
         try {
@@ -96,7 +97,7 @@ export class TeamResolver {
     }
 
     @Mutation(type => TeamMember)
-    @UseGuards(AuthGuard)
+    @UseGuards(AuthGuard, TeamGuard, TeamModeratorGuard, TeamRequiredGuard)
     async ChangeMemberPermission(@Args() args: PermissionArgs, @Context() ctx) {
         try {
             return await this.teamService.changeMemberPermission(args, ctx).pipe(take(1)).toPromise();
@@ -106,7 +107,7 @@ export class TeamResolver {
     }
 
     @Mutation(type => Team)
-    @UseGuards(AuthGuard)
+    @UseGuards(AuthGuard, TeamGuard, TeamOwnerGuard, TeamRequiredGuard)
     async ChangeOwner(@Args() args: ChangeOwnerArgs, @Context() ctx) {
         try {
             return await this.teamService.changeOwner(args, ctx).pipe(take(1)).toPromise();

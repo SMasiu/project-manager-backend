@@ -3,7 +3,6 @@ import { Observable } from "rxjs";
 import { BadRequestFilter, NotFoundErrorFilter } from "src/shared/filters/error.filter";
 import { DatabaseService } from "src/shared/services/database.service";
 import { take } from "rxjs/operators";
-import { TeamService } from "src/teams/team.service";
 import { Project } from "./projects.model";
 
 @Injectable()
