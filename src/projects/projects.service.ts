@@ -53,6 +53,12 @@ export class ProjectsService {
 
     }
 
+    toogleOpenProject({project_id, open}): Observable<Project> {
+        return Observable.create( observer => {
+            
+        });
+    }
+
     mapProject({name, description, open, owner_type, project_id, user_name, user_surname, user_nick, user_id}) {
         return {
             project_id,

@@ -7,7 +7,6 @@ import { UseGuards } from "@nestjs/common";
 import { AuthGuard } from "src/shared/guards/auth.guard";
 import { TeamGuard, TeamRequiredGuard } from "src/shared/guards/team.guard";
 import { TeamOwnerGuard, TeamModeratorGuard } from "src/shared/guards/team-permission.guard";
-import { TeamModule } from "./team.module";
 
 @Resolver()
 export class TeamResolver {

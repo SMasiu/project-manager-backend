@@ -4,7 +4,7 @@ import { AllFriends } from "./friends.model";
 import { UseGuards } from "@nestjs/common";
 import { AuthGuard } from "src/shared/guards/auth.guard";
 import { InviteFriendArgs, FriendIdArgs } from "./friends.args";
-import { take, retry } from "rxjs/operators";
+import { take } from "rxjs/operators";
 import { User } from "src/user/user.model";
 
 @Resolver()

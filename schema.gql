@@ -39,6 +39,7 @@ type Mutation {
   CancelFriendInvitation(user_id: ID!): User!
   DeleteFriend(user_id: ID!): User!
   CreateProject(name: String!, description: String!, owner_type: String!, team_id: ID = null): Project!
+  ToogleOpenProject(open: Boolean!, project_id: ID!): Project!
 }
 
 type Notifications {

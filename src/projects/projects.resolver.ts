@@ -2,13 +2,14 @@ import { Resolver, Mutation, Args, Context, ResolveProperty, Parent } from "@nes
 import { ProjectsService } from "./projects.service";
 import { UseGuards } from "@nestjs/common";
 import { AuthGuard } from "src/shared/guards/auth.guard";
-import { CreateProjectArgs } from "./projects.args";
+import { CreateProjectArgs, ToogleOpenProjectArgs } from "./projects.args";
 import { Project } from "./projects.model";
 import { Team } from "src/teams/team.model";
 import { TeamService } from "src/teams/team.service";
 import { take } from "rxjs/operators";
 import { TeamGuard } from "src/shared/guards/team.guard";
 import { TeamModeratorGuard } from "src/shared/guards/team-permission.guard";
+import { ProjectGuard } from "src/shared/guards/project.guard";
 
 @Resolver(type => Project)
 export class ProjectsResolver {
@@ -28,8 +29,18 @@ export class ProjectsResolver {
         }
     }
 
+    @Mutation(type => Project)
+    @UseGuards(AuthGuard, ProjectGuard)
+    async ToogleOpenProject(@Args() args: ToogleOpenProjectArgs) {
+        try {
+            return await this.projectsService.toogleOpenProject(args).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
+    }
+
     @ResolveProperty('team', type => Team, {nullable: true})
-    async GetTeam(@Parent() project, @Context() ctx) {
+    async GetTeam(@Parent() project) {
 
         const {team} = project;
 

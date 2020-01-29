@@ -14,3 +14,12 @@ export class CreateProjectArgs {
     @Field(type => ID, {nullable: true, defaultValue: null})
     team_id: string;
 }
+
+@ArgsType()
+export class ToogleOpenProjectArgs {
+    @Field(type => Boolean)
+    open: boolean;
+
+    @Field(type => ID)
+    project_id: boolean;
+}
