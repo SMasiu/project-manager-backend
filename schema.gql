@@ -38,11 +38,22 @@ type Mutation {
   AcceptFriendInvitation(user_id: ID!): User!
   CancelFriendInvitation(user_id: ID!): User!
   DeleteFriend(user_id: ID!): User!
+  CreateProject(name: String!, description: String!, owner_type: String!, team_id: ID = null): Project!
 }
 
 type Notifications {
   teamInvitations: [Team!]!
   friendInvitations: [User!]!
+}
+
+type Project {
+  project_id: ID!
+  name: String!
+  description: String!
+  open: Boolean!
+  owner_type: String!
+  creator: User!
+  team: Team
 }
 
 type Query {

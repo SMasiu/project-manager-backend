@@ -34,6 +34,36 @@ class Migration {
         user_id_2 INTEGER references users(user_id) NOT NULL
     `)
 
+    private projectsTable = this.createTable('projects', `
+        project_id SERIAL PRIMARY KEY,
+        name VARCHAR(30) NOT NULL,
+        description VARCHAR(500) NOT NULL,
+        open BOOLEAN NOT NULL,
+        owner_type VARCHAR(5) NOT NULL,
+        creator_id INTEGER references users(user_id) NOT NULL,
+        team_id INTEGER references teams(team_id)
+    `)
+
+    private projectColumnsTable = this.createTable('project_columns', `
+        column_id SERIAL PRIMARY KEY,
+        name VARCHAR(50) NOT NULL,
+        possition INTEGER NOT NULL,
+        project_id INTEGER references projects(project_id) NOT NULL
+    `)
+
+    private projectTicketTable = this.createTable('project_tickets', `
+        ticket_id SERIAL PRIMARY KEY,
+        name VARCHAR(50) NOT NULL,
+        description VARCHAR(5000),
+        create_stamp DATE NOT NULL DEFAULT CURRENT_DATE,
+        creator_id INTEGER references users(user_id) NOT NULL
+    `)
+
+    private ticketUsersTable = this.createTable('ticket_users', `
+        ticket_id INTEGER references project_tickets(ticket_id) NOT NULL,
+        user_id INTEGER references users(user_id) NOT NULL
+    `)
+
     private createTable(name: string, fields: string) {
         return `
             CREATE TABLE IF NOT EXISTS ${name} (
@@ -48,7 +78,11 @@ class Migration {
             db.client.query(this.teamsTable),
             db.client.query(this.teamMembersTable),
             db.client.query(this.friendsInvitationTable),
-            db.client.query(this.friendsTable)
+            db.client.query(this.friendsTable),
+            db.client.query(this.projectsTable),
+            db.client.query(this.projectColumnsTable),
+            db.client.query(this.projectTicketTable),
+            db.client.query(this.ticketUsersTable)
         )
     }
 

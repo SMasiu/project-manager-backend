@@ -7,6 +7,7 @@ import * as Joi from '@hapi/joi';
 import { BadRequestFilter, NotFoundErrorFilter, UnauthorizedErrorFilter } from "src/shared/filters/error.filter";
 import { sameId } from "src/shared/functions/same-id";
 import { mapTeams } from "./team-maps";
+import { Team } from "./team.model";
 
 @Injectable()
 export class TeamService {
@@ -16,6 +17,32 @@ export class TeamService {
     });
 
     constructor(private databaseService: DatabaseService) { }
+
+    getTeamById(team_id: string): Observable<Team> {
+        return Observable.create( async observer => {
+
+            const teams = await this.databaseService.query(observer, `
+                SELECT t.team_id, t.name, u.user_id as owner_id, u.name as owner_name, u.nick as owner_nick, u.surname as owner_surname,
+                    (SELECT (COUNT(team_id) + 1) as count FROM team_members WHERE team_id = $1 AND permission <> 0) as members_count
+                FROM teams t
+                JOIN users u ON u.user_id = t.owner
+                WHERE t.team_id = $1
+                LIMIT 1;
+            `, [team_id]).pipe(take(1), map(mapTeams)).toPromise();
+
+            if(!teams) {
+                return observer.complete();
+            }
+
+            if(!teams.length) {
+                return observer.error(new NotFoundErrorFilter('Team not found'))
+            }
+
+            observer.next(teams[0]);
+            return observer.complete();
+
+        });
+    }
 
     createTeam(team: NewTeamType, {req}): Observable<TeamType> {
         return Observable.create( async observer => {
