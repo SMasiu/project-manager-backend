@@ -2,7 +2,7 @@ import { Resolver, Mutation, Args, Context, ResolveProperty, Parent } from "@nes
 import { ProjectsService } from "./projects.service";
 import { UseGuards } from "@nestjs/common";
 import { AuthGuard } from "src/shared/guards/auth.guard";
-import { CreateProjectArgs, ToogleOpenProjectArgs } from "./projects.args";
+import { CreateProjectArgs, ToogleOpenProjectArgs, ChangeOwnerTypeArgs, DeleteProjectArgs } from "./projects.args";
 import { Project } from "./projects.model";
 import { Team } from "src/teams/team.model";
 import { TeamService } from "src/teams/team.service";
@@ -10,6 +10,7 @@ import { take } from "rxjs/operators";
 import { TeamGuard } from "src/shared/guards/team.guard";
 import { TeamModeratorGuard } from "src/shared/guards/team-permission.guard";
 import { ProjectGuard } from "src/shared/guards/project.guard";
+import { ProjectAdminGuard } from "src/shared/guards/project-permission.guard";
 
 @Resolver(type => Project)
 export class ProjectsResolver {
@@ -30,10 +31,30 @@ export class ProjectsResolver {
     }
 
     @Mutation(type => Project)
-    @UseGuards(AuthGuard, ProjectGuard)
+    @UseGuards(AuthGuard, ProjectGuard, ProjectAdminGuard)
     async ToogleOpenProject(@Args() args: ToogleOpenProjectArgs) {
         try {
             return await this.projectsService.toogleOpenProject(args).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    @Mutation(type => Project)
+    @UseGuards(AuthGuard, ProjectGuard, ProjectAdminGuard, TeamGuard, TeamModeratorGuard)
+    async ChangeProjectOwnerType(@Args() args: ChangeOwnerTypeArgs) {
+        try {
+            return await this.projectsService.changeOwnerType(args).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    @Mutation(type => Project)
+    @UseGuards(AuthGuard, ProjectGuard, ProjectAdminGuard)
+    async DeleteProject(@Args() args: DeleteProjectArgs) {
+        try {
+            return await this.projectsService.deleteProject(args).pipe(take(1)).toPromise();
         } catch (err) {
             throw err;
         }
@@ -43,7 +64,7 @@ export class ProjectsResolver {
     async GetTeam(@Parent() project) {
 
         const {team} = project;
-
+        
         if(team) {
             return await this.teamService.getTeamById(team).pipe(take(1)).toPromise();
         } else {

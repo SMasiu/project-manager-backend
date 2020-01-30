@@ -29,6 +29,7 @@ export class AuthGuard implements CanActivate {
 						return observer.complete();
 					}
 					else {
+						
 						observer.error(new UnauthorizedErrorFilter('Unauthorized user'));
 					}
 				},

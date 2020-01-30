@@ -30,7 +30,7 @@ export class TeamGuard implements CanActivate {
             const members = await this.databaseService.query(observer, `
                 SELECT t.team_id, t.owner, t.name, m.user_id, m.permission
                 FROM team_members m
-                JOIN teams t USING (team_id)
+                FULL JOIN teams t USING (team_id)
                 WHERE team_id = $1 AND (user_id = $2 OR owner = $2)
                 LIMIT 1;
             `, [team_id, user_id]).pipe(take(1)).toPromise();

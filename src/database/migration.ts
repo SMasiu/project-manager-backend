@@ -47,20 +47,20 @@ class Migration {
     private projectColumnsTable = this.createTable('project_columns', `
         column_id SERIAL PRIMARY KEY,
         name VARCHAR(50) NOT NULL,
-        possition INTEGER NOT NULL,
+        position INTEGER NOT NULL,
         project_id INTEGER references projects(project_id) NOT NULL
     `)
 
-    private projectTicketTable = this.createTable('project_tickets', `
-        ticket_id SERIAL PRIMARY KEY,
+    private projectTaskTable = this.createTable('project_tasks', `
+        task_id SERIAL PRIMARY KEY,
         name VARCHAR(50) NOT NULL,
         description VARCHAR(5000),
         create_stamp DATE NOT NULL DEFAULT CURRENT_DATE,
         creator_id INTEGER references users(user_id) NOT NULL
     `)
 
-    private ticketUsersTable = this.createTable('ticket_users', `
-        ticket_id INTEGER references project_tickets(ticket_id) NOT NULL,
+    private taskUsersTable = this.createTable('task_users', `
+        task_id INTEGER references project_tasks(task_id) NOT NULL,
         user_id INTEGER references users(user_id) NOT NULL
     `)
 
@@ -81,8 +81,8 @@ class Migration {
             db.client.query(this.friendsTable),
             db.client.query(this.projectsTable),
             db.client.query(this.projectColumnsTable),
-            db.client.query(this.projectTicketTable),
-            db.client.query(this.ticketUsersTable)
+            db.client.query(this.projectTaskTable),
+            db.client.query(this.taskUsersTable)
         )
     }
 

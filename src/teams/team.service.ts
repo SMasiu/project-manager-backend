@@ -320,6 +320,16 @@ export class TeamService {
     deleteTeam(team_id: string): Observable<TeamType> {
         return Observable.create( async observer => {
 
+            const res0 = await this.databaseService.query(observer, `
+                UPDATE projects
+                SET owner_type = 'user', team_id = null
+                WHERE team_id = $1;
+            `, [team_id]).pipe(take(1)).toPromise();
+
+            if(!res0) {
+                return observer.complete();
+            }
+            
             const deletedMembers = await this.databaseService.query(observer, `
                 DELETE FROM team_members WHERE team_id = $1;
             `, [team_id]).pipe(take(1)).toPromise();
@@ -466,7 +476,7 @@ export class TeamService {
                 return observer.complete();
             }
 
-            const res2 =await this.databaseService.query(observer, `
+            const res2 = await this.databaseService.query(observer, `
                 DELETE FROM team_members WHERE user_id = $2 AND team_id = $1
             `, [team_id, user_id]).pipe(take(1)).toPromise();
 

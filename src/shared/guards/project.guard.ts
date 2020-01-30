@@ -42,7 +42,7 @@ export class ProjectGuard implements CanActivate {
             if(user_id === creator_id || user_id === owner) {
 
                 req.meInProject = {
-                    project: rows,
+                    project: rows[0],
                     members: null
                 }
                 
@@ -57,7 +57,7 @@ export class ProjectGuard implements CanActivate {
             const members = await this.databaseService.query(observer, `
                 SELECT user_id, permission
                 FROM team_members
-                WHERE user_id = $1 AND team_id = $2
+                WHERE user_id = $1 AND team_id = $2 AND permission <> 0
                 LIMIT 1
             `, [user_id, team_id]).pipe(take(1)).toPromise();
 
@@ -70,7 +70,7 @@ export class ProjectGuard implements CanActivate {
             }
 
             req.meInProject = {
-                project: rows,
+                project: rows[0],
                 members
             }
 
