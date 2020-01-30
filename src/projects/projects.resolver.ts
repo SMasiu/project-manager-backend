@@ -1,4 +1,4 @@
-import { Resolver, Mutation, Args, Context, ResolveProperty, Parent } from "@nestjs/graphql";
+import { Resolver, Mutation, Args, Context, ResolveProperty, Parent, Query } from "@nestjs/graphql";
 import { ProjectsService } from "./projects.service";
 import { UseGuards } from "@nestjs/common";
 import { AuthGuard } from "src/shared/guards/auth.guard";
@@ -19,6 +19,16 @@ export class ProjectsResolver {
         private readonly projectsService: ProjectsService,
         private readonly teamService: TeamService
     ) { }
+    
+    @Query(type => [Project])
+    @UseGuards(AuthGuard)
+    async GetProjects(@Context() ctx) {
+        try {
+            return await this.projectsService.getMyProjects(ctx).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
+    }
         
     @Mutation(type => Project)
     @UseGuards(AuthGuard, TeamGuard, TeamModeratorGuard)

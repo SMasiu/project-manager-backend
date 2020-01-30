@@ -2,13 +2,75 @@ import { Injectable } from "@nestjs/common";
 import { Observable } from "rxjs";
 import { BadRequestFilter, NotFoundErrorFilter } from "src/shared/filters/error.filter";
 import { DatabaseService } from "src/shared/services/database.service";
-import { take } from "rxjs/operators";
+import { take, map } from "rxjs/operators";
 import { Project } from "./projects.model";
 
 @Injectable()
 export class ProjectsService {
 
     constructor(private readonly databaseService: DatabaseService) { }
+
+    getProjectById(project_id): Observable<Project> {
+        return Observable.create( async observer => {
+
+            const project = await this.databaseService.query(observer, `
+                SELECT p.name, p.description, p.open, p.owner_type, p.project_id, p.team_id,
+                    u.name as user_name, u.surname as user_surname, u.nick as user_nick, u.user_id
+                FROM projects p
+                JOIN users u ON u.user_id = p.creator_id
+                WHERE project_id = $1
+                LIMIT 1;
+            `, [project_id]).pipe(take(1)).toPromise();
+
+            if(!project) {
+                return observer.complete();
+            }
+
+            if(!project.length) {
+                return observer.error(new NotFoundErrorFilter('Project not found'));
+            }
+
+            observer.next(this.mapProject(project[0]));
+            return observer.complete();
+
+        })
+    }
+
+    getMyProjects({ req }): Observable<Project[]> {
+        return Observable.create( async observer => {
+
+            const { user_id } = req.authUser;
+
+            const projects = await this.databaseService.query(observer, `
+                SELECT DISTINCT p.name, p.description, p.open, p.owner_type, p.project_id, p.team_id,
+                    u.name as user_name, u.surname as user_surname, u.nick as user_nick, u.user_id
+                FROM projects p
+                    JOIN users u ON u.user_id = p.creator_id
+                    FULL JOIN teams t USING (team_id)
+                WHERE (
+                    u.user_id = $1 OR
+                    t.owner = $1 OR
+                    EXISTS (
+                        SELECT user_id
+                        FROM team_members
+                        WHERE team_id = t.team_id AND user_id = $1 AND permission <> 0
+                    )
+                )
+                AND p.project_id IS NOT NULL
+            `, [user_id]).pipe(
+                take(1),
+                map( res => res.map( r => this.mapProject(r) ) )
+            ).toPromise();
+
+            if(!projects) {
+                return observer.complete();
+            }
+
+            observer.next(projects)
+            return observer.complete();
+
+        });
+    }
 
     createProject({name, description, owner_type, team_id}, { req }): Observable<Project> {
 

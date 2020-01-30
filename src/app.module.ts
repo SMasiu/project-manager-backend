@@ -8,6 +8,7 @@ import { TeamModule } from './teams/team.module';
 import { NotificationModule } from './notifications/notification.module';
 import { FriendsModule } from './friends/friends.module';
 import { ProjectsModule } from './projects/projects.module';
+import { ColumnModule } from './project-columns/columns.module';
 
 @Module({
 	imports: [
@@ -31,7 +32,8 @@ import { ProjectsModule } from './projects/projects.module';
 		TeamModule,
 		NotificationModule,
 		FriendsModule,
-		ProjectsModule
+		ProjectsModule,
+		ColumnModule
 	],
 	controllers: [AppController],
 	providers: [AppService],

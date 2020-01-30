@@ -8,6 +8,14 @@ type AllFriends {
   invited: [User!]!
 }
 
+type Column {
+  column_id: ID!
+  name: String!
+  position: Int!
+  project_id: Project!
+  project: Project!
+}
+
 type Me {
   user_id: ID!
   name: String!
@@ -42,6 +50,7 @@ type Mutation {
   ToogleOpenProject(open: Boolean!, project_id: ID!): Project!
   ChangeProjectOwnerType(project_id: ID!, owner_type: String!, team_id: ID): Project!
   DeleteProject(project_id: ID!): Project!
+  CreateColumn(project_id: ID!, name: String!): Column!
 }
 
 type Notifications {
@@ -71,6 +80,7 @@ type Query {
   GetFriends: [User!]!
   GetInvitedFriends: [User!]!
   GetAllFriends: AllFriends!
+  GetProjects: [Project!]!
 }
 
 type Team {
