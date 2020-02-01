@@ -5,7 +5,7 @@ import { UseGuards } from "@nestjs/common";
 import { AuthGuard } from "src/shared/guards/auth.guard";
 import { ProjectGuard } from "src/shared/guards/project.guard";
 import { ProjectModeratorGuard } from "src/shared/guards/project-permission.guard";
-import { CreateColumnArgs } from "./column.args";
+import { CreateColumnArgs, DeleteColumnArgs, UpdateColumnArgs, ChangeColumnPositionArgs } from "./column.args";
 import { take } from "rxjs/operators";
 import { Project } from "src/projects/projects.model";
 import { ProjectsService } from "src/projects/projects.service";
@@ -25,9 +25,43 @@ export class ColumnResolver {
         }
     }
 
+    @Mutation(type => Column)
+    @UseGuards(AuthGuard, ProjectGuard, ProjectModeratorGuard)
+    async DeleteColumn(@Args() args: DeleteColumnArgs) {
+        try {
+            return await this.columnService.deleteColumn(args).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    @Mutation(type => Column)
+    @UseGuards(AuthGuard, ProjectGuard, ProjectModeratorGuard)
+    async UpdateColumn(@Args() args: UpdateColumnArgs) {
+        try {
+            return await this.columnService.updateColumn(args).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    @Mutation(type => [Column])
+    @UseGuards(AuthGuard, ProjectGuard, ProjectModeratorGuard)
+    async ChangeColumnPosition(@Args() args: ChangeColumnPositionArgs) {
+        try {
+            return await this.columnService.changeColumnPosition(args).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
+    }
+
     @ResolveProperty('project', type => Project)
     async GetProject(@Parent() parent) {    
-        return await this.projectService.getProjectById(parent.project).pipe(take(1)).toPromise();
+        try {
+            return await this.projectService.getProjectById(parent.project).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
     }
 
 }

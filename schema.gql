@@ -12,7 +12,6 @@ type Column {
   column_id: ID!
   name: String!
   position: Int!
-  project_id: Project!
   project: Project!
 }
 
@@ -51,6 +50,9 @@ type Mutation {
   ChangeProjectOwnerType(project_id: ID!, owner_type: String!, team_id: ID): Project!
   DeleteProject(project_id: ID!): Project!
   CreateColumn(project_id: ID!, name: String!): Column!
+  DeleteColumn(project_id: ID!, column_id: ID!): Column!
+  UpdateColumn(project_id: ID!, column_id: ID!, name: ID!): Column!
+  ChangeColumnPosition(project_id: ID!, column_id: ID!, position: Int!): [Column!]!
 }
 
 type Notifications {

@@ -13,5 +13,5 @@ export class Column {
     position: number;
 
     @Field(type => Project)
-    project_id: Project;
+    project: Project;
 }
