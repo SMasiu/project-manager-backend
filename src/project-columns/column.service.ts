@@ -190,4 +190,28 @@ export class ColumnService {
         });
     }
 
+    getColumnById(column_id: string): Observable<Column> {
+        return Observable.create( async observer => {
+            
+            const columns = await this.databaseService.query(observer, `
+                SELECT name, column_id, position, project_id as project
+                FROM project_columns
+                WHERE column_id = $1
+                LIMIT 1;
+            `, [column_id]).pipe(take(1)).toPromise();
+
+            if(!columns) {
+                return observer.complete();
+            }
+
+            if(!columns.length) {
+                return observer.error(new NotFoundErrorFilter('Column not found'))
+            }
+
+            observer.next(columns[0]);
+            return observer.complete();
+        
+        });
+    }
+
 }

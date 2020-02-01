@@ -55,8 +55,9 @@ class Migration {
         task_id SERIAL PRIMARY KEY,
         name VARCHAR(50) NOT NULL,
         description VARCHAR(5000),
-        create_stamp DATE NOT NULL DEFAULT CURRENT_DATE,
-        creator_id INTEGER references users(user_id) NOT NULL
+        create_stamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        creator_id INTEGER references users(user_id) NOT NULL,
+        column_id INTEGER references project_columns(column_id) NOT NULL
     `)
 
     private taskUsersTable = this.createTable('task_users', `

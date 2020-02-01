@@ -9,6 +9,7 @@ import { NotificationModule } from './notifications/notification.module';
 import { FriendsModule } from './friends/friends.module';
 import { ProjectsModule } from './projects/projects.module';
 import { ColumnModule } from './project-columns/columns.module';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
 	imports: [
@@ -33,7 +34,8 @@ import { ColumnModule } from './project-columns/columns.module';
 		NotificationModule,
 		FriendsModule,
 		ProjectsModule,
-		ColumnModule
+		ColumnModule,
+		TasksModule
 	],
 	controllers: [AppController],
 	providers: [AppService],
