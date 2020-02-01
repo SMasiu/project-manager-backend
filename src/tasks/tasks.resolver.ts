@@ -12,6 +12,7 @@ import { Column } from "src/project-columns/column.model";
 import { ColumnService } from "src/project-columns/column.service";
 import { ColumnGuard } from "src/shared/guards/column.guard";
 import { TaskGuard } from "src/shared/guards/task.guard";
+import { TaskUsersService } from "src/task-users/task-users.service";
 
 @Resolver(type => Task)
 export class TaskResolver {
@@ -19,7 +20,8 @@ export class TaskResolver {
     constructor(
         private readonly taskService: TasksService,
         private readonly userService: UserService,
-        private readonly columnService: ColumnService) { }
+        private readonly columnService: ColumnService,
+        private readonly taskUsersService: TaskUsersService) { }
 
     @Mutation(type => Task)
     @UseGuards(AuthGuard, ProjectGuard, ColumnGuard)
@@ -74,6 +76,15 @@ export class TaskResolver {
     async GetColumn(@Parent() parent) {
         try {
             return await this.columnService.getColumnById(parent.column).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    @ResolveProperty('assignedUsers', type => [User])
+    async GetAssignedUsers(@Parent() parent) {
+        try {
+            return await this.taskUsersService.getTaskUsers(parent.task_id).pipe(take(1)).toPromise();
         } catch (err) {
             throw err;
         }

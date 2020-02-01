@@ -13,6 +13,7 @@ type Column {
   name: String!
   position: Int!
   project: Project!
+  tasks: [Task!]!
 }
 
 """Date custom scalar type"""
@@ -77,6 +78,7 @@ type Project {
   owner_type: String!
   creator: User!
   team: Team
+  columns: [Column!]!
 }
 
 type Query {
@@ -92,6 +94,7 @@ type Query {
   GetInvitedFriends: [User!]!
   GetAllFriends: AllFriends!
   GetProjects: [Project!]!
+  GetProject(project_id: ID!): Project!
 }
 
 type Task {
@@ -101,6 +104,7 @@ type Task {
   create_stamp: Date!
   creator: User!
   column: Column!
+  assignedUsers: [User!]!
 }
 
 type Team {

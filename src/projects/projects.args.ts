@@ -41,3 +41,9 @@ export class DeleteProjectArgs {
     @Field(type => ID)
     project_id: string;
 }
+
+@ArgsType()
+export class GetProjectArgs {
+    @Field(type => ID)
+    project_id: string;
+}

@@ -1,6 +1,7 @@
 import { ObjectType, Field, ID } from "type-graphql";
 import { User } from "src/user/user.model";
 import { Team } from "src/teams/team.model";
+import { Column } from "src/project-columns/column.model";
 
 @ObjectType()
 export class Project {
@@ -24,4 +25,7 @@ export class Project {
 
     @Field(type => Team, {nullable: true})
     team: Team;
+
+    @Field(type => [Column])
+    columns: Column[];
 }

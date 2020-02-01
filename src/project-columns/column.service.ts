@@ -190,6 +190,26 @@ export class ColumnService {
         });
     }
 
+    getMappedAllColumns(project_id: string): Observable<Column> {
+        return Observable.create( async observer => {
+            
+            const columns = await this.getAllColumnsByProjectId(observer, project_id).pipe(take(1)).toPromise();
+
+            if(!columns) {
+                observer.complete();
+            }
+
+            observer.next(columns.map( c => ({
+                column_id: c.column_id,
+                name: c.name,
+                position: c.position,
+                project: c.project_id
+            })));
+            return observer.complete();
+
+        });
+    }
+
     getColumnById(column_id: string): Observable<Column> {
         return Observable.create( async observer => {
             

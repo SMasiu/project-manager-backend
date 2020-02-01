@@ -2,7 +2,7 @@ import { Resolver, Mutation, Args, Context, ResolveProperty, Parent, Query } fro
 import { ProjectsService } from "./projects.service";
 import { UseGuards } from "@nestjs/common";
 import { AuthGuard } from "src/shared/guards/auth.guard";
-import { CreateProjectArgs, ToogleOpenProjectArgs, ChangeOwnerTypeArgs, DeleteProjectArgs } from "./projects.args";
+import { CreateProjectArgs, ToogleOpenProjectArgs, ChangeOwnerTypeArgs, DeleteProjectArgs, GetProjectArgs } from "./projects.args";
 import { Project } from "./projects.model";
 import { Team } from "src/teams/team.model";
 import { TeamService } from "src/teams/team.service";
@@ -11,13 +11,16 @@ import { TeamGuard } from "src/shared/guards/team.guard";
 import { TeamModeratorGuard } from "src/shared/guards/team-permission.guard";
 import { ProjectGuard } from "src/shared/guards/project.guard";
 import { ProjectAdminGuard } from "src/shared/guards/project-permission.guard";
+import { Column } from "src/project-columns/column.model";
+import { ColumnService } from "src/project-columns/column.service";
 
 @Resolver(type => Project)
 export class ProjectsResolver {
     
     constructor(
         private readonly projectsService: ProjectsService,
-        private readonly teamService: TeamService
+        private readonly teamService: TeamService,
+        private readonly columnService: ColumnService
     ) { }
     
     @Query(type => [Project])
@@ -25,6 +28,16 @@ export class ProjectsResolver {
     async GetProjects(@Context() ctx) {
         try {
             return await this.projectsService.getMyProjects(ctx).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    @Query(type => Project)
+    @UseGuards(AuthGuard, ProjectGuard)
+    async GetProject(@Args() args: GetProjectArgs) {
+        try {
+            return await this.projectsService.getProjectById(args.project_id).pipe(take(1)).toPromise();
         } catch (err) {
             throw err;
         }
@@ -65,6 +78,15 @@ export class ProjectsResolver {
     async DeleteProject(@Args() args: DeleteProjectArgs) {
         try {
             return await this.projectsService.deleteProject(args).pipe(take(1)).toPromise();
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    @ResolveProperty('columns', type => [Column])
+    async GetColumns(@Parent() parent) {
+        try {
+            return await this.columnService.getMappedAllColumns(parent.project_id).pipe(take(1)).toPromise();
         } catch (err) {
             throw err;
         }

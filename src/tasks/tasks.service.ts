@@ -8,7 +8,8 @@ import { NotFoundErrorFilter } from "src/shared/filters/error.filter";
 @Injectable()
 export class TasksService {
 
-    constructor(private readonly databaseService: DatabaseService) { }
+    constructor(
+        private readonly databaseService: DatabaseService) { }
 
     createTask({column_id, name, description}, {req}): Observable<Task> {
         return Observable.create( async observer => {
@@ -57,7 +58,7 @@ export class TasksService {
 
     deleteTask({task_id}): Observable<Task> {
         return Observable.create( async observer => {
-
+            
             const task = await this.databaseService.query(observer, `
                 DELETE FROM project_tasks
                 WHERE task_id = $1
@@ -97,6 +98,25 @@ export class TasksService {
             }
 
             observer.next(task[0]);
+            return observer.complete();
+
+        });
+    }
+
+    getAllTasksById(column_id: string): Observable<Task[]> {
+        return Observable.create( async observer => {
+
+            const tasks = await this.databaseService.query(observer, `
+                SELECT task_id, name, description, create_stamp, creator_id as creator, column_id as column
+                FROM project_tasks
+                WHERE column_id = $1;
+            `, [column_id]).pipe(take(1)).toPromise();
+
+            if(!tasks) {
+                return observer.complete();
+            }
+
+            observer.next(tasks);
             return observer.complete();
 
         });

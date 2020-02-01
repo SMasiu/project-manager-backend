@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "src/shared/services/database.service";
-import { Observable } from "rxjs";
+import { Observable, Observer } from "rxjs";
 import { User } from "src/user/user.model";
 import { take } from "rxjs/operators";
 import { sameId } from "src/shared/functions/same-id";
@@ -14,13 +14,14 @@ export class TaskUsersService {
     addUserToTask({task_id, user_id}, { req }): Observable<User> {
         return Observable.create( async observer => {
 
-            const { team_id } = req.meInProject;
+            const { team_id } = req.meInProject.project;
             const me_id = req.authUser.user_id;
-
             let valid = false;
 
             if(sameId(me_id, user_id)) {
+
                 valid = true;
+
             } else {
 
                 const member = await this.databaseService.query(observer, `
@@ -33,13 +34,13 @@ export class TaskUsersService {
                 if(!member) {
                     return observer.complete();
                 }
-
+                
                 if(member.length) {
                     valid = true;
                 }
 
             }
-
+            
             if(!valid) {
                 return observer.error(new BadRequestFilter('This user is not a part of a project'));
             }
@@ -112,6 +113,45 @@ export class TaskUsersService {
             observer.next(user[0]);
             return observer.complete();
             
+        });
+    }
+
+    deleteAllByTaskId(obs: Observer<any>, task_id: string): Observable<Boolean> {
+        return Observable.create( async observer => {
+
+            const tasks = await this.databaseService.query(obs, `
+                DELETE FROM task_users
+                WHERE task_id = $1;
+            `, [task_id]).pipe(take(1)).toPromise();
+
+            if(!tasks) {
+                observer.next(false);
+                return observer.complete();
+            }
+
+            observer.next(true);
+            return observer.complete();
+
+        });
+    }
+    
+    getTaskUsers(task_id: string): Observable<User[]> {
+        return Observable.create( async observer => {
+
+            const users = await this.databaseService.query(observer, `
+                SELECT u.user_id, u.name, u.surname, u.nick
+                FROM task_users t
+                JOIN users u USING(user_id)
+                WHERE task_id = $1;
+            `, [task_id]).pipe(take(1)).toPromise();
+
+            if(!users) {
+                return observer.complete();
+            }
+
+            observer.next(users);
+            return observer.complete();
+
         });
     }
 

@@ -5,6 +5,7 @@ import { AuthService } from "src/shared/services/auth.service";
 import { DatabaseService } from "src/shared/services/database.service";
 import { CookieService } from "src/shared/services/cookie.service";
 import { TeamService } from "src/teams/team.service";
+import { ColumnService } from "src/project-columns/column.service";
 
 @Module({
     providers: [
@@ -14,6 +15,7 @@ import { TeamService } from "src/teams/team.service";
         DatabaseService,
         CookieService,
         TeamService,
+        ColumnService
     ]
 })
 export class ProjectsModule { }

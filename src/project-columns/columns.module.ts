@@ -5,6 +5,8 @@ import { CookieService } from "src/shared/services/cookie.service";
 import { ColumnResolver } from "./column.resolver";
 import { ColumnService } from "./column.service";
 import { ProjectsService } from "src/projects/projects.service";
+import { TasksService } from "src/tasks/tasks.service";
+import { TaskUsersService } from "src/task-users/task-users.service";
 
 @Module({
     providers: [
@@ -13,7 +15,9 @@ import { ProjectsService } from "src/projects/projects.service";
         CookieService,
         ColumnResolver,
         ColumnService,
-        ProjectsService
+        ProjectsService,
+        TasksService,
+        TaskUsersService
     ]
 })
 export class ColumnModule { }

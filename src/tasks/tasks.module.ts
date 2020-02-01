@@ -7,6 +7,7 @@ import { CookieService } from "src/shared/services/cookie.service";
 import { DateScalar } from "src/graphql/scalars/date.scalar";
 import { UserService } from "src/user/user.service";
 import { ColumnService } from "src/project-columns/column.service";
+import { TaskUsersService } from "src/task-users/task-users.service";
 
 @Module({
     providers: [
@@ -17,7 +18,8 @@ import { ColumnService } from "src/project-columns/column.service";
         CookieService,
         DateScalar,
         UserService,
-        ColumnService
+        ColumnService,
+        TaskUsersService
     ]
 })
 export class TasksModule { }

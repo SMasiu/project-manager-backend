@@ -22,4 +22,7 @@ export class Task {
 
     @Field(type => Column)
     column: Column;
+
+    @Field(type => [User])
+    assignedUsers: User[];
 }

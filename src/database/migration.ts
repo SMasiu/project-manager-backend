@@ -48,7 +48,7 @@ class Migration {
         column_id SERIAL PRIMARY KEY,
         name VARCHAR(50) NOT NULL,
         position INTEGER NOT NULL,
-        project_id INTEGER references projects(project_id) NOT NULL
+        project_id INTEGER references projects(project_id) ON DELETE CASCADE NOT NULL
     `)
 
     private projectTaskTable = this.createTable('project_tasks', `
@@ -57,12 +57,12 @@ class Migration {
         description VARCHAR(5000),
         create_stamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         creator_id INTEGER references users(user_id) NOT NULL,
-        column_id INTEGER references project_columns(column_id) NOT NULL
+        column_id INTEGER references project_columns(column_id) ON DELETE CASCADE NOT NULL
     `)
 
     private taskUsersTable = this.createTable('task_users', `
-        task_id INTEGER references project_tasks(task_id) NOT NULL,
-        user_id INTEGER references users(user_id) NOT NULL
+        task_id INTEGER references project_tasks(task_id) ON DELETE CASCADE NOT NULL,
+        user_id INTEGER references users(user_id) NOT NULL 
     `)
 
     private createTable(name: string, fields: string) {
