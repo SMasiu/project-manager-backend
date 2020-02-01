@@ -10,6 +10,7 @@ import { FriendsModule } from './friends/friends.module';
 import { ProjectsModule } from './projects/projects.module';
 import { ColumnModule } from './project-columns/columns.module';
 import { TasksModule } from './tasks/tasks.module';
+import { TaskUsersModule } from './task-users/task-users.module';
 
 @Module({
 	imports: [
@@ -35,7 +36,8 @@ import { TasksModule } from './tasks/tasks.module';
 		FriendsModule,
 		ProjectsModule,
 		ColumnModule,
-		TasksModule
+		TasksModule,
+		TaskUsersModule
 	],
 	controllers: [AppController],
 	providers: [AppService],

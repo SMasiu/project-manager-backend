@@ -60,6 +60,8 @@ type Mutation {
   UpdateTask(task_id: ID!, project_id: ID!, name: String!, description: String!): Task!
   DeleteTask(task_id: ID!, project_id: ID!): Task!
   MoveTask(task_id: ID!, project_id: ID!, column_id: ID!): Task!
+  AddUserToTask(task_id: ID!, project_id: ID!, user_id: ID!): User!
+  DeleteUserFromTask(task_id: ID!, project_id: ID!, user_id: ID!): User!
 }
 
 type Notifications {
