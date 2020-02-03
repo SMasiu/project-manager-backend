@@ -158,13 +158,13 @@ export class UserService {
                     WHERE u.user_id <> $4
                         ${getIfTeam()}
                         ${getIfNotFriends()}
-                    LIMIT $1
-                    OFFSET $2
                 )
                 SELECT u.name, u.surname, u.nick, u.user_id
                 FROM full_table ft
                     JOIN users u USING(user_id)
                 WHERE ft.fullname SIMILAR TO $3
+                LIMIT $1
+                OFFSET $2
             `, params).pipe(take(1)).toPromise();
 
             if(!rows) {
