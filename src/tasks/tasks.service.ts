@@ -3,7 +3,7 @@ import { DatabaseService } from "src/shared/services/database.service";
 import { Observable } from "rxjs";
 import { Task } from "./tasks.model";
 import { take } from "rxjs/operators";
-import { NotFoundErrorFilter } from "src/shared/filters/error.filter";
+import { NotFoundErrorFilter, BadRequestFilter } from "src/shared/filters/error.filter";
 
 @Injectable()
 export class TasksService {
@@ -11,16 +11,22 @@ export class TasksService {
     constructor(
         private readonly databaseService: DatabaseService) { }
 
-    createTask({column_id, name, description}, {req}): Observable<Task> {
+    createTask({column_id, name, description, priority}, {req}): Observable<Task> {
         return Observable.create( async observer => {
             const { user_id } = req.authUser;
 
+            if(!priority) {
+                priority = 0;
+            } else if(priority > 2 || priority < 0) {
+                return observer.error(new BadRequestFilter('Invalid task priority'));
+            }
+
             const tasks = await this.databaseService.query(observer, `
                 INSERT INTO project_tasks(
-                name, description, creator_id, column_id)
-                VALUES ($1, $2, $3, $4)
-                RETURNING task_id, name, description, create_stamp, creator_id as creator, column_id as column
-            `, [name, description, user_id, column_id]).pipe(take(1)).toPromise();
+                name, description, creator_id, column_id, priority)
+                VALUES ($1, $2, $3, $4, $5)
+                RETURNING task_id, name, description, create_stamp, creator_id as creator, column_id as column, priority
+            `, [name, description, user_id, column_id, priority]).pipe(take(1)).toPromise();
 
             if(!tasks) {
                 return observer.complete();
@@ -32,15 +38,21 @@ export class TasksService {
         });
     }
 
-    updateTask({task_id, name, description}): Observable<Task> {
+    updateTask({task_id, name, description, priority}): Observable<Task> {
         return Observable.create( async observer => {
             
+            if(!priority) {
+                priority = 0;
+            } else if(priority > 2 || priority < 0) {
+                return observer.error(new BadRequestFilter('Invalid task priority'));
+            }
+
             const task = await this.databaseService.query(observer, `
                 UPDATE project_tasks
-                SET name = $2, description = $3
+                SET name = $2, description = $3, priority = $4
                 WHERE task_id = $1
-                RETURNING task_id, name, description, create_stamp, creator_id as creator, column_id as column;
-            `, [task_id, name, description]).pipe(take(1)).toPromise();
+                RETURNING task_id, name, description, create_stamp, creator_id as creator, column_id as column, priority;
+            `, [task_id, name, description, priority]).pipe(take(1)).toPromise();
 
             if(!task) {
                 return observer.complete();
@@ -62,7 +74,7 @@ export class TasksService {
             const task = await this.databaseService.query(observer, `
                 DELETE FROM project_tasks
                 WHERE task_id = $1
-                RETURNING task_id, name, description, create_stamp, creator_id as creator, column_id as column;
+                RETURNING task_id, name, description, create_stamp, creator_id as creator, column_id as column, priority;
             `, [task_id]).pipe(take(1)).toPromise();
 
             if(!task) {
@@ -86,7 +98,7 @@ export class TasksService {
                 UPDATE project_tasks
                 SET column_id = $2
                 WHERE task_id = $1
-                RETURNING task_id, name, description, create_stamp, creator_id as creator, column_id as column;
+                RETURNING task_id, name, description, create_stamp, creator_id as creator, column_id as column, priority;
             `, [task_id, column_id]).pipe(take(1)).toPromise();
 
             if(!task) {
@@ -107,7 +119,7 @@ export class TasksService {
         return Observable.create( async observer => {
 
             const tasks = await this.databaseService.query(observer, `
-                SELECT task_id, name, description, create_stamp, creator_id as creator, column_id as column
+                SELECT task_id, name, description, create_stamp, creator_id as creator, column_id as column, priority
                 FROM project_tasks
                 WHERE column_id = $1;
             `, [column_id]).pipe(take(1)).toPromise();

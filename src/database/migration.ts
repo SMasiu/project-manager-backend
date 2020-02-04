@@ -55,6 +55,7 @@ class Migration {
         task_id SERIAL PRIMARY KEY,
         name VARCHAR(50) NOT NULL,
         description VARCHAR(5000),
+        priority INTEGER NOT NULL DEFAULT 0,
         create_stamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         creator_id INTEGER references users(user_id) NOT NULL,
         column_id INTEGER references project_columns(column_id) ON DELETE CASCADE NOT NULL

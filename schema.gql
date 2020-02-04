@@ -57,8 +57,8 @@ type Mutation {
   DeleteColumn(project_id: ID!, column_id: ID!): Column!
   UpdateColumn(project_id: ID!, column_id: ID!, name: ID!): Column!
   ChangeColumnPosition(project_id: ID!, column_id: ID!, position: Int!): [Column!]!
-  CreateTask(project_id: ID!, column_id: ID!, name: String!, description: String!): Task!
-  UpdateTask(task_id: ID!, project_id: ID!, name: String!, description: String!): Task!
+  CreateTask(project_id: ID!, column_id: ID!, name: String!, description: String!, priority: Int): Task!
+  UpdateTask(task_id: ID!, project_id: ID!, name: String!, description: String!, priority: Int): Task!
   DeleteTask(task_id: ID!, project_id: ID!): Task!
   MoveTask(task_id: ID!, project_id: ID!, column_id: ID!): Task!
   AddUserToTask(task_id: ID!, project_id: ID!, user_id: ID!): User!
@@ -102,6 +102,7 @@ type Task {
   name: String!
   description: String!
   create_stamp: Date!
+  priority: Int!
   creator: User!
   column: Column!
   assignedUsers: [User!]!

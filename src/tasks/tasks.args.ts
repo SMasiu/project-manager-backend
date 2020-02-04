@@ -1,4 +1,4 @@
-import { ArgsType, Field, ID } from "type-graphql";
+import { ArgsType, Field, ID, Int } from "type-graphql";
 
 @ArgsType()
 export class CreateTaskArgs {
@@ -13,6 +13,9 @@ export class CreateTaskArgs {
 
     @Field(type => String)
     description: string;
+
+    @Field(type => Int, { nullable: true })
+    priority: number;
 }
 
 @ArgsType()
@@ -28,6 +31,9 @@ export class UpdateTaskArgs {
 
     @Field(type => String)
     description: string;
+
+    @Field(type => Int, { nullable: true })
+    priority: number;
 }
 
 @ArgsType()
