@@ -133,6 +133,7 @@ export class ColumnService {
             });
 
             cols.push(column);
+
             cols.sort((a, b) => a.position > b.position ? 1 : -1);
             
             let p = 0;

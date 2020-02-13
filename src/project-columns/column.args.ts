@@ -26,7 +26,7 @@ export class UpdateColumnArgs {
     @Field(type => ID)
     column_id: string;
 
-    @Field(type => ID)
+    @Field(type => String)
     name: string
 }
 

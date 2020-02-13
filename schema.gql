@@ -55,7 +55,7 @@ type Mutation {
   DeleteProject(project_id: ID!): Project!
   CreateColumn(project_id: ID!, name: String!): Column!
   DeleteColumn(project_id: ID!, column_id: ID!): Column!
-  UpdateColumn(project_id: ID!, column_id: ID!, name: ID!): Column!
+  UpdateColumn(project_id: ID!, column_id: ID!, name: String!): Column!
   ChangeColumnPosition(project_id: ID!, column_id: ID!, position: Int!): [Column!]!
   CreateTask(project_id: ID!, column_id: ID!, name: String!, description: String!, priority: Int): Task!
   UpdateTask(task_id: ID!, project_id: ID!, name: String!, description: String!, priority: Int): Task!
